@@ -42,9 +42,11 @@ export default function LoginForm() {
     if (otpError) {
       const wait = otpError.message.match(/after (\d+) seconds/)?.[1];
       return setError(
-        otpError.status === 429
-          ? `We just sent you an email. Check your inbox and spam first, or request a new one in ${wait ?? "60"} seconds.`
-          : "We couldn't send the email. Try again in a minute.",
+        otpError.status !== 429
+          ? "We couldn't send the email. Try again in a minute."
+          : wait
+            ? `We just sent you an email. Check your inbox and spam, or request a new one in ${wait} seconds.`
+            : "We've hit our limit on sign-in emails for the moment. Check your inbox and spam for an earlier email, or try again later.",
       );
     }
     setEmail(clean);
