@@ -39,7 +39,14 @@ export default function LoginForm() {
     });
     setBusy(false);
     if (otpError) console.error("Sending code failed:", otpError);
-    if (otpError) return setError(otpError.message.includes("rate") ? "Too many codes requested. Wait a minute and try again." : "We couldn't send the code. Try again in a minute.");
+    if (otpError) {
+      const wait = otpError.message.match(/after (\d+) seconds/)?.[1];
+      return setError(
+        otpError.status === 429
+          ? `We just sent you an email. Check your inbox and spam first, or request a new one in ${wait ?? "60"} seconds.`
+          : "We couldn't send the email. Try again in a minute.",
+      );
+    }
     setEmail(clean);
     setStep("code");
   }
