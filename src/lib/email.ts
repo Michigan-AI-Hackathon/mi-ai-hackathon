@@ -2,12 +2,14 @@ import "server-only";
 import { Resend } from "resend";
 import { EVENT } from "@/lib/config";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = process.env.EMAIL_FROM ?? `${EVENT.name} <onboarding@resend.dev>`;
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export async function sendUnreadDigests(rows: { email: string; full_name: string | null; unread: number; conversations: number }[]) {
   if (!rows.length) return { sent: 0 };
+  // No Resend key yet (prototype): skip emails instead of crashing.
+  if (!process.env.RESEND_API_KEY) return { sent: 0, skipped: "RESEND_API_KEY not set" };
+  const resend = new Resend(process.env.RESEND_API_KEY);
   // Resend batch: up to 100 emails per call
   let sent = 0;
   for (let i = 0; i < rows.length; i += 100) {
