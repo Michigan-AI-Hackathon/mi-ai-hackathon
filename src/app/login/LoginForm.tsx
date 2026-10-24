@@ -20,7 +20,11 @@ export default function LoginForm() {
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(clean)) return setError("Enter a full email address, like you@school.edu.");
     setBusy(true);
     const { data: schools, error: lookupError } = await supabase.rpc("schools_for_email", { p_email: clean });
-    if (lookupError) { setBusy(false); return setError("We couldn't check your email right now. Try again in a minute."); }
+    if (lookupError) {
+      console.error("School lookup failed:", lookupError); // shows the real cause in the browser console
+      setBusy(false);
+      return setError("We couldn't check your email right now. Try again in a minute.");
+    }
     if (!schools?.length) {
       setBusy(false);
       return setError(`@${clean.split("@")[1]} isn't on our list of Michigan schools. Use your school email. If your school is missing, email aihackathonumich@gmail.com.`);
@@ -30,6 +34,7 @@ export default function LoginForm() {
       options: { shouldCreateUser: true, emailRedirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}` },
     });
     setBusy(false);
+    if (otpError) console.error("Sending code failed:", otpError);
     if (otpError) return setError(otpError.message.includes("rate") ? "Too many codes requested. Wait a minute and try again." : "We couldn't send the code. Try again in a minute.");
     setEmail(clean);
     setStep("code");
