@@ -33,15 +33,15 @@ export default function TestLogin() {
   }
 
   return (
-    <form onSubmit={submit} className="panel mt-10 border-dashed">
-      <p className="text-sm font-semibold text-warn">Test mode: sign in with a password, no email</p>
-      <label htmlFor="t-email" className="label mt-4">School email</label>
+    <form onSubmit={submit} className="mt-8">
+      <label htmlFor="t-email" className="label">School email</label>
       <input id="t-email" type="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} required />
       <label htmlFor="t-pass" className="label mt-3">Password</label>
       <input id="t-pass" type="password" minLength={6} className="input" value={password} onChange={(e) => setPassword(e.target.value)} required />
-      <p className="hint">New email? This creates the account with that password.</p>
+      <p className="hint">At least 6 characters. Remember it: there&apos;s no password reset in the test version.</p>
       {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
-      <button className="btn-secondary mt-4 w-full" disabled={busy}>{busy ? "Signing in…" : "Sign in (test mode)"}</button>
+      <button className="btn-primary mt-5 w-full py-3" disabled={busy}>{busy ? "Signing in…" : "Sign in or create account"}</button>
+      <p className="mt-4 text-xs text-muted">Test version: no confirmation email.</p>
     </form>
   );
 }
