@@ -6,12 +6,16 @@ import { createClient } from "@/lib/supabase/client";
 export default function LoginForm() {
   const supabase = createClient();
   const router = useRouter();
-  const next = useSearchParams().get("next") ?? "/dashboard";
+  const params = useSearchParams();
+  const next = params.get("next") ?? "/dashboard";
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [step, setStep] = useState<"email" | "code">("email");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    params.get("error") === "link" ? "That sign-in link expired or was opened in a different browser. Enter your email to get a new one." : null,
+  );
   const [busy, setBusy] = useState(false);
+  const [showCode, setShowCode] = useState(false);
 
   async function sendCode(e: React.FormEvent) {
     e.preventDefault();
@@ -57,19 +61,33 @@ export default function LoginForm() {
       <input id="email" type="email" autoComplete="email" required className="input" placeholder="you@school.edu"
         value={email} onChange={(e) => setEmail(e.target.value)} aria-describedby={error ? "err" : undefined} />
       {error && <p id="err" role="alert" className="mt-2 text-sm text-danger">{error}</p>}
-      <button className="btn-primary mt-5 w-full py-3" disabled={busy}>{busy ? "Sending code…" : "Send me a code"}</button>
+      <button className="btn-primary mt-5 w-full py-3" disabled={busy}>{busy ? "Sending…" : "Email me a sign-in link"}</button>
     </form>
   ) : (
-    <form onSubmit={verify} className="mt-8">
-      <p className="text-[15px]">We sent a code to <strong>{email}</strong>. It can take a minute to arrive.</p>
-      <label htmlFor="code" className="label mt-5">6-digit code</label>
-      <input id="code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} required className="input text-center font-heading text-2xl tracking-[0.4em]"
-        value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} autoFocus />
-      {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
-      <button className="btn-primary mt-5 w-full py-3" disabled={busy || code.length < 6}>{busy ? "Checking…" : "Sign in"}</button>
-      <button type="button" className="btn mt-2 w-full text-muted hover:text-ink" onClick={() => { setStep("email"); setCode(""); setError(null); }}>
-        Use a different email
+    <div className="mt-8">
+      <div className="panel">
+        <p className="text-[16px] font-semibold">Check your email</p>
+        <p className="mt-1 text-[15px] text-muted">
+          We sent a sign-in link to <strong className="text-ink">{email}</strong>. Open it on this device to sign in.
+          It can take a minute to arrive, and it may land in spam.
+        </p>
+      </div>
+      {!showCode ? (
+        <button type="button" className="btn mt-4 px-0 text-primary hover:underline" onClick={() => setShowCode(true)}>
+          Got a 6-digit code instead?
+        </button>
+      ) : (
+        <form onSubmit={verify} className="mt-4">
+          <label htmlFor="code" className="label">6-digit code</label>
+          <input id="code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} required className="input text-center font-heading text-2xl tracking-[0.4em]"
+            value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} autoFocus />
+          {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
+          <button className="btn-primary mt-4 w-full py-3" disabled={busy || code.length < 6}>{busy ? "Checking…" : "Sign in"}</button>
+        </form>
+      )}
+      <button type="button" className="btn mt-2 w-full text-muted hover:text-ink" onClick={() => { setStep("email"); setCode(""); setError(null); setShowCode(false); }}>
+        Use a different email or resend
       </button>
-    </form>
+    </div>
   );
 }
