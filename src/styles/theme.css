@@ -1,0 +1,44 @@
+/* =====================================================================
+   THEME: the one file to edit when the design changes.
+   Every color, font, corner and size on the site comes from here.
+   Change a value, save, and every page updates. See /design to preview.
+
+   Right now this is a NEUTRAL PROTOTYPE theme (grays + one blue) so it
+   reads as a wireframe. Replace the values with the designer's.
+   Names match Figma variable names 1:1 (e.g. color/brand-primary).
+   ===================================================================== */
+:root {
+  /* ---------- Colors ---------- */
+  --color-page-bg: #f6f6f7;          /* page background */
+  --color-surface: #ffffff;          /* cards, inputs, header */
+  --color-text: #17181c;             /* main text */
+  --color-text-muted: #60636c;       /* secondary text, hints */
+  --color-border: #dcdde1;           /* borders, dividers */
+
+  --color-brand-primary: #2f5bd3;    /* buttons, links, selected states */
+  --color-brand-primary-hover: #2349b3;
+  --color-text-on-primary: #ffffff;  /* text on primary buttons */
+  --color-brand-accent: #8f939c;     /* small highlights (logo squares, bullets) */
+
+  --color-hero-bg: #17181c;          /* countdown panel background */
+  --color-hero-text: #ffffff;        /* countdown panel text */
+
+  --color-success: #1d7a4e;
+  --color-warning: #94620a;
+  --color-error: #b42335;
+  --color-focus: #2f5bd3;            /* keyboard focus ring */
+
+  /* ---------- Type ---------- */
+  /* Fonts are loaded in src/app/layout.tsx. To switch fonts: install the
+     @fontsource package, import it there, and change these two lines. */
+  --font-family-heading: "Public Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-family-body: "Public Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --heading-weight: 700;
+  --heading-tracking: -0.015em;
+  --text-body: 16px;
+
+  /* ---------- Shape ---------- */
+  --radius-small: 4px;     /* focus rings, tags */
+  --radius-medium: 6px;    /* buttons, inputs */
+  --radius-large: 10px;    /* cards, panels */
+}

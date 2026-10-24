@@ -1,26 +1,55 @@
 @import "tailwindcss";
+@import "../styles/theme.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/*
+  Wires the design tokens in src/styles/theme.css into Tailwind class names.
+  Designers: you shouldn't need to edit this file. Change theme.css instead.
+  Class names are by ROLE, not by color: `bg-primary`, `text-muted`, `border-line`...
+  so changing a color never means renaming classes in the pages.
+*/
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: var(--color-page-bg);          /* bg-paper: page background */
+  --color-card: var(--color-surface);           /* bg-card: cards, inputs, header */
+  --color-ink: var(--color-text);               /* text-ink: main text */
+  --color-muted: var(--color-text-muted);       /* text-muted: secondary text */
+  --color-line: var(--color-border);            /* border-line: borders and dividers */
+  --color-primary: var(--color-brand-primary);  /* buttons, links, selected states */
+  --color-primary-hover: var(--color-brand-primary-hover);
+  --color-on-primary: var(--color-text-on-primary);
+  --color-accent: var(--color-brand-accent);    /* small highlights */
+  --color-hero: var(--color-hero-bg);           /* countdown panel */
+  --color-on-hero: var(--color-hero-text);
+  --color-ok: var(--color-success);
+  --color-warn: var(--color-warning);
+  --color-danger: var(--color-error);
+
+  --font-heading: var(--font-family-heading);
+  --font-sans: var(--font-family-body);
+
+  --radius-sm: var(--radius-small);
+  --radius-md: var(--radius-medium);
+  --radius-lg: var(--radius-large);
+  --radius-xl: var(--radius-large);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+html { background: var(--color-page-bg); color: var(--color-text); }
+body { font-family: var(--font-family-body); font-size: var(--text-body); -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { font-family: var(--font-family-heading); font-weight: var(--heading-weight); letter-spacing: var(--heading-tracking); }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; border-radius: var(--radius-small); }
+
+/* Shared building blocks. Every page uses these, so restyling them restyles the site. */
+@utility btn { @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50; }
+@utility btn-primary { @apply btn bg-primary text-on-primary hover:bg-primary-hover; }
+@utility btn-secondary { @apply btn border border-line bg-card text-ink hover:border-primary; }
+@utility btn-danger { @apply btn border border-line bg-card text-danger hover:border-danger; }
+@utility input { @apply w-full rounded-md border border-line bg-card px-3 py-2.5 text-[15px] text-ink placeholder:text-muted focus:border-primary focus:outline-none; }
+@utility label { @apply mb-1.5 block text-sm font-semibold text-ink; }
+@utility hint { @apply mt-1 text-sm text-muted; }
+@utility panel { @apply rounded-lg border border-line bg-card p-5 sm:p-6; }
+@utility chip { @apply inline-flex items-center rounded-full border border-line bg-paper px-2.5 py-0.5 text-[13px] text-ink; }
+@utility hero-panel { @apply rounded-lg bg-hero text-on-hero; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
 }
