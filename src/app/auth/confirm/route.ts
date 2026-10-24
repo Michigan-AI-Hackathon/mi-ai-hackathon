@@ -16,11 +16,14 @@ export async function GET(request: NextRequest) {
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) return NextResponse.redirect(`${origin}${next}`);
+    console.error("Sign-in link (code) failed:", error.message); // visible in Vercel > Logs
   }
   if (token_hash) {
     const { error } = await supabase.auth.verifyOtp({ type, token_hash });
     if (!error) return NextResponse.redirect(`${origin}${next}`);
+    console.error("Sign-in link (token) failed:", error.message);
   }
-  // Link opened in a different browser, or expired: the code still works.
+  if (!code && !token_hash) console.error("Sign-in link had no code:", request.url);
+  // Link opened in a different browser, or expired.
   return NextResponse.redirect(`${origin}/login?error=link`);
 }
