@@ -28,6 +28,8 @@ Set `lock_deadline` in the `app_settings` table. Then:
 > Email students without a team 7 days and 2 days before lock_deadline, and teams that aren't locked yet.
 
 ## 6. Before real students use it
+- Turn OFF test mode: delete NEXT_PUBLIC_ENABLE_TEST_LOGIN in Vercel and turn "Confirm email" back ON in Supabase.
+- Remove demo data (commands at the top of supabase/demo_data.sql) and any +test accounts.
 - Switch Stripe to live keys (Phil confirmed Stripe).
 - Buy a domain, verify it in Resend, set EMAIL_FROM.
 - Confirm event date/place in src/lib/config.ts.
