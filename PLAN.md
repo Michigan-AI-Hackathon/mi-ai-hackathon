@@ -14,11 +14,9 @@ sign up, profile, pay with Stripe test card 4242 4242 4242 4242, invite, accept,
 > Admins can move a student between teams and unlock a team through new security-definer SQL functions that
 > check public.is_admin(). Add tests to supabase/tests/rules.test.mjs.
 
-## 3. Refunds for students who stayed
-> Add check-in and check-out to the admin section (search a student, mark checked in / checked out).
-> Add an admin button "Refund everyone who checked in and out" that calls Stripe refunds for their
-> payment_intent, shows a preview count first, and records refunded_at. The charge.refunded webhook already
-> marks payments refunded.
+## 3. Check-in at the event
+> Add check-in to the admin section: search a student or scan a QR code from their dashboard and mark them
+> checked in. Show checked-in counts by team so staff can spot no-shows and fill teams on the day.
 
 ## 4. Automatic matching for solo students
 > Add an admin "Suggest teams" tool: take students with no team who are paid, group them into teams of 4
@@ -35,7 +33,7 @@ Set `lock_deadline` in the `app_settings` table. Then:
 - Confirm event date/place in src/lib/config.ts.
 - Decide: UM campuses one school or three (README).
 - Turn on Supabase Pro ($25/mo) so the project never pauses.
-- Write the deposit/refund rule on the dashboard (what counts as "stayed the whole event").
+- Add the "non-refundable" line to the terms students agree to before paying.
 
 ## 7. When the designer's work arrives
 Edit src/styles/theme.css and check /design. Then adjust page layouts to the wireframes, one page file at a time.

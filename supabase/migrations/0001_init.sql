@@ -14,7 +14,7 @@ create table public.app_settings (
   invite_hours         int         not null default 48,   -- invites expire after this many hours
   max_pending_invites  int         not null default 5,    -- open invites a team can have at once
   lock_deadline        timestamptz,                       -- teams locked by this date get a guaranteed spot
-  require_payment      boolean     not null default true  -- must pay $15 before teaming up
+  require_payment      boolean     not null default true  -- must pay the registration fee before teaming up
 );
 insert into public.app_settings default values;
 
@@ -273,7 +273,7 @@ begin
   end if;
   if v_size = 4 and v_groups < 3 then return 'A team of 4 needs people from at least 3 schools.'; end if;
   if (public.settings()).require_payment and v_unpaid > 0 then
-    return 'Everyone on the team has to pay the $15 deposit before you can lock in.';
+    return 'Everyone on the team has to pay the registration fee before you can lock in.';
   end if;
   return null;
 end $$;
@@ -286,7 +286,7 @@ begin
   select * into p from public.profiles where id = p_user;
   if p.onboarded_at is null then raise exception 'Finish your profile first.'; end if;
   if (public.settings()).require_payment and p.paid_at is null then
-    raise exception 'Pay the $15 deposit first. You get it back when you stay for the whole event.';
+    raise exception 'Pay the registration fee first.';
   end if;
 end $$;
 

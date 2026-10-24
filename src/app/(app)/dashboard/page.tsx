@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Countdown from "@/components/Countdown";
+import PayButton from "@/components/PayButton";
 import { startCheckout } from "@/app/actions";
 import { EVENT } from "@/lib/config";
 import { requireStudent } from "@/lib/session";
@@ -51,13 +52,13 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           <Step done title="Set up your profile">
             <Link href="/onboarding" className="font-medium text-primary hover:underline">Edit your profile</Link>
           </Step>
-          <Step done={paid} title={paid ? "Deposit paid" : "Pay the $15 deposit"}>
+          <Step done={paid} title={paid ? "Registration paid" : `Pay the ${EVENT.feeLabel} registration fee`}>
             {paid ? (
-              <>Paid {new Date(profile.paid_at!).toLocaleDateString()}. You get it back when you stay for the whole event.</>
+              <>Paid {new Date(profile.paid_at!).toLocaleDateString()}.</>
             ) : (
               <>
-                <p>You get it back when you stay for the whole event. You need to pay before you can join a team or appear in search.</p>
-                <form action={startCheckout} className="mt-3"><button className="btn-primary">Pay $15 deposit</button></form>
+                <p>The fee is non-refundable. You need to pay before you can join a team or appear in search.</p>
+                <form action={startCheckout} className="mt-3"><PayButton label={`Pay ${EVENT.feeLabel}`} /></form>
               </>
             )}
           </Step>

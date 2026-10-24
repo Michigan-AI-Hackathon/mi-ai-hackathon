@@ -1,6 +1,7 @@
 import Link from "next/link";
 import ActionButton from "@/components/ActionButton";
 import { cancelInvite, leaveTeam, lockTeam, respondInvite } from "@/app/actions";
+import { EVENT } from "@/lib/config";
 import { requireStudent } from "@/lib/session";
 import { timeLeft } from "@/lib/time";
 import type { Student } from "@/lib/types";
@@ -21,7 +22,7 @@ export default async function TeamPage() {
             <TeamForm mode="create" />
           </section>
         ) : (
-          <p className="mt-6 rounded-lg bg-warn/10 px-4 py-3 text-[15px] text-warn">Pay the $15 deposit from your <Link href="/dashboard" className="underline">dashboard</Link> to start or join a team.</p>
+          <p className="mt-6 rounded-lg bg-warn/10 px-4 py-3 text-[15px] text-warn">Pay the {EVENT.feeLabel} registration fee from your <Link href="/dashboard" className="underline">dashboard</Link> to start or join a team.</p>
         )}
         <p className="mt-6 text-[15px]">Or <Link href="/teams" className="font-medium text-primary hover:underline">browse open teams</Link>, and check your <Link href="/invites" className="font-medium text-primary hover:underline">invites</Link>.</p>
       </div>
@@ -140,7 +141,7 @@ export default async function TeamPage() {
             <li>No more than 2 from the same school</li>
             <li>A team of 4 needs at least 3 schools</li>
             <li>A team of 3 needs 3 different schools</li>
-            <li>Everyone pays the deposit before locking in</li>
+            <li>Everyone pays the registration fee before locking in</li>
           </ul>
         </div>
         {!locked && <ActionButton action={leaveTeam} variant="danger" confirm="Leave this team?">Leave team</ActionButton>}

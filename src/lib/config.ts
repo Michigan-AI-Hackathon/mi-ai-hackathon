@@ -6,7 +6,8 @@ export const EVENT = {
   startsAt: "2027-04-09T09:00:00-04:00",
   dateLabel: "April 9–10, 2027",
   place: "Detroit (venue to be announced)",
-  depositCents: 1500,
+  feeCents: 2000,          // registration fee, non-refundable
+  feeLabel: "$20",
 };
 
 export const TRACKS = ["FinTech", "HealthTech", "SportsTech", "Industry 4.0"] as const;

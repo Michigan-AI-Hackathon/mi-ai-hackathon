@@ -1,7 +1,7 @@
 # Michigan AI Hackathon: team-matching site
 
 Next.js 15 + Supabase + Stripe + Resend, hosted on Vercel.
-Students sign up with a Michigan school email, build a profile, pay a $15 refundable deposit,
+Students sign up with a Michigan school email, build a profile, pay a $20 non-refundable registration fee,
 find teammates, form a team that follows the school-mix rules, and message each other.
 
 ## What's built
@@ -11,7 +11,7 @@ find teammates, form a team that follows the school-mix rules, and message each 
 | Landing page with countdown | `src/app/page.tsx` | Event date/place in `src/lib/config.ts` |
 | Sign-in with a 6-digit email code, Michigan emails only | `src/app/login` | Blocked twice: the page checks first, and the database rejects any non-Michigan sign-up |
 | Profile setup (year is private) | `src/app/onboarding` | Multi-campus emails (umich.edu) pick their campus |
-| $15 deposit via Stripe Checkout | `startCheckout` in `src/app/actions.ts`, webhook in `src/app/api/stripe/webhook` | Only the webhook marks someone paid |
+| $20 registration fee via Stripe Checkout (price in `src/lib/config.ts`) | `startCheckout` in `src/app/actions.ts`, webhook in `src/app/api/stripe/webhook` | Only the webhook marks someone paid |
 | Find teammates (search + filters) | `src/app/(app)/people` | Only finished, paid profiles appear |
 | Open teams, ask to join | `src/app/(app)/teams` | |
 | My team: 4 spots, invites, requests, lock in, leave | `src/app/(app)/team` | |
@@ -48,7 +48,7 @@ To count them separately, run in the Supabase SQL editor:
 2. **Stripe** (stripe.com): stay in **test mode** until launch.
    - Developers > API keys: copy the secret key.
    - Developers > Webhooks > Add endpoint: `https://YOUR-SITE/api/stripe/webhook`, events `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `charge.refunded`. Copy the signing secret.
-   - Refunds: Stripe Dashboard > Payments, select everyone who stayed, Refund (bulk works). Stripe keeps its ~$0.74 fee per payment.
+   - The fee is non-refundable. For a one-off exception, refund it in Stripe Dashboard > Payments; the site records it automatically.
 3. **Resend** (resend.com): verify the domain you'll send from (needs a domain, e.g. the site's), create an API key, and use its SMTP settings in Supabase step 1.
 4. **Vercel** (vercel.com): import the GitHub repo, add every variable from `.env.example`, deploy.
 5. **Unread-message emails:** in Supabase, Database > Extensions: enable `pg_cron` and `pg_net`. Edit the URL and secret in `0003_cron.sql`, run it.
@@ -73,4 +73,4 @@ Change a value there and every page updates. Open `/design` to see all colors, t
 
 ## Not built yet (see PLAN.md)
 
-Admin dashboard, refund-everyone-who-stayed button, check-in, automatic matching for solo students, ambassador accounts.
+Admin dashboard, check-in, automatic matching for solo students, ambassador accounts.

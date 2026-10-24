@@ -62,7 +62,7 @@ await ready(umd, "University of Michigan – Dearborn");
 const unpaid = await signup("u@emich.edu");
 await db.query(`update public.profiles set onboarded_at=now(), school_id=(select id from schools where name='Eastern Michigan University') where id=$1`, [unpaid]);
 await as(unpaid);
-await expectError("unpaid student can't create a team", `select public.create_team('Team U')`, "deposit");
+await expectError("unpaid student can't create a team", `select public.create_team('Team U')`, "registration fee");
 
 await as(msu1);
 const team = (await db.query(`select public.create_team('Spartans+') as id`)).rows[0].id;

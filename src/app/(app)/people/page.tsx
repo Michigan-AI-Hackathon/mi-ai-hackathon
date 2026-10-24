@@ -1,6 +1,6 @@
 import Link from "next/link";
 import StudentCard from "@/components/StudentCard";
-import { SKILL_SUGGESTIONS, TRACKS } from "@/lib/config";
+import { EVENT, SKILL_SUGGESTIONS, TRACKS } from "@/lib/config";
 import { requireStudent } from "@/lib/session";
 import type { Student } from "@/lib/types";
 
@@ -35,7 +35,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
     <div>
       <h1 className="font-heading text-4xl font-bold">Find teammates</h1>
       <p className="mt-2 text-[16px] text-muted">Search students from every school. Invite someone to your team, ask to join theirs, or send a message.</p>
-      {!canAct && <p className="mt-4 rounded-lg bg-warn/10 px-4 py-3 text-[15px] text-warn">Pay the $15 deposit from your dashboard to invite or message people.</p>}
+      {!canAct && <p className="mt-4 rounded-lg bg-warn/10 px-4 py-3 text-[15px] text-warn">Pay the {EVENT.feeLabel} registration fee from your dashboard to invite or message people.</p>}
 
       <form className="panel mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-6" role="search">
         <div className="lg:col-span-2">

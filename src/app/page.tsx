@@ -13,7 +13,7 @@ const exampleTeam = [
 
 const steps = [
   { title: "Sign up with your school email", body: "Any student at a Michigan college or university can join. Use your school address, not a personal one." },
-  { title: "Build your profile and pay the deposit", body: "Tell people what you're good at and which track you want. The $15 deposit is refunded when you stay for the whole event." },
+  { title: "Build your profile and register", body: `Tell people what you're good at and which track you want, then pay the ${EVENT.feeLabel} registration fee.` },
   { title: "Find teammates", body: "Search students by skill, track and school. Invite someone to your team or ask to join theirs, and message them right on the site." },
   { title: "Lock in your team", body: "Teams that lock in before the deadline are guaranteed a spot. Students without a team are matched at the event." },
 ];
@@ -62,7 +62,7 @@ export default async function Home() {
             <dl className="mt-8 grid gap-4 border-t border-on-hero/25 pt-6 text-[15px] sm:grid-cols-3">
               <div><dt className="text-on-hero/70">When</dt><dd className="font-semibold">{EVENT.dateLabel}</dd></div>
               <div><dt className="text-on-hero/70">Where</dt><dd className="font-semibold">{EVENT.place}</dd></div>
-              <div><dt className="text-on-hero/70">Deposit</dt><dd className="font-semibold">$15, refunded when you stay the whole event</dd></div>
+              <div><dt className="text-on-hero/70">Registration</dt><dd className="font-semibold">{EVENT.feeLabel}, non-refundable</dd></div>
             </dl>
           </div>
         </section>

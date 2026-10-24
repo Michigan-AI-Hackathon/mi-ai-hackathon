@@ -70,10 +70,10 @@ export async function startCheckout() {
       quantity: 1,
       price_data: {
         currency: "usd",
-        unit_amount: EVENT.depositCents,
+        unit_amount: EVENT.feeCents,
         product_data: {
-          name: `${EVENT.name} deposit`,
-          description: "Refunded when you stay for the whole event.",
+          name: `${EVENT.name} registration fee`,
+          description: "Non-refundable.",
         },
       },
     }],
