@@ -202,6 +202,7 @@ create table public.payments (
   created_at         timestamptz not null default now(),
   refunded_at        timestamptz
 );
+create unique index payments_payment_intent_key on public.payments (payment_intent);
 
 -- =====================================================================
 -- Helpers
