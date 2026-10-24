@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Logo from "@/components/Logo";
 import LoginForm from "./LoginForm";
+import TestLogin from "./TestLogin";
 
 export default function LoginPage() {
   return (
@@ -12,6 +13,7 @@ export default function LoginPage() {
           Use your school email. We&apos;ll email you a sign-in link, so there&apos;s no password to remember.
         </p>
         <Suspense><LoginForm /></Suspense>
+        {process.env.NEXT_PUBLIC_ENABLE_TEST_LOGIN === "true" && <TestLogin />}
       </div>
     </div>
   );
