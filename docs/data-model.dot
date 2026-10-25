@@ -1,0 +1,121 @@
+digraph G {
+  graph [rankdir=TB, bgcolor="white", pad=0.5, nodesep=0.55, ranksep=0.9, fontname="Helvetica", newrank=true];
+  node  [shape=plaintext, fontname="Helvetica", fontsize=13];
+  edge  [fontname="Helvetica", fontsize=11, color="#4b5563", fontcolor="#374151", arrowsize=0.8];
+
+  school [label=<
+  <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5" COLOR="#0f766e">
+    <TR><TD BGCOLOR="#0f766e"><FONT COLOR="white"><B>SCHOOL</B>  (79 Michigan schools)</FONT></TD></TR>
+    <TR><TD ALIGN="LEFT">School name</TD></TR>
+    <TR><TD ALIGN="LEFT">Type (public, community, tribal, private, graduate)</TD></TR>
+    <TR><TD ALIGN="LEFT">Email endings (e.g. umich.edu, mail.gvsu.edu)</TD></TR>
+    <TR><TD ALIGN="LEFT">"Counts as" group (UM's 3 campuses = 1 school)</TD></TR>
+  </TABLE>>];
+
+  student [label=<
+  <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5" COLOR="#1d4ed8">
+    <TR><TD BGCOLOR="#1d4ed8"><FONT COLOR="white"><B>STUDENT</B></FONT></TD></TR>
+    <TR><TD ALIGN="LEFT">Name</TD></TR>
+    <TR><TD ALIGN="LEFT">School email (must match a school's ending)</TD></TR>
+    <TR><TD ALIGN="LEFT">School  &#8594; SCHOOL</TD></TR>
+    <TR><TD ALIGN="LEFT"><B>Year (private: only organizers see it)</B></TD></TR>
+    <TR><TD ALIGN="LEFT">What they study</TD></TR>
+    <TR><TD ALIGN="LEFT">Skills, interests</TD></TR>
+    <TR><TD ALIGN="LEFT">Tracks (FinTech, HealthTech, SportsTech, Industry 4.0)</TD></TR>
+    <TR><TD ALIGN="LEFT">"What I'm looking for" + looking for a team? (yes/no)</TD></TR>
+    <TR><TD ALIGN="LEFT">LinkedIn (optional)</TD></TR>
+    <TR><TD ALIGN="LEFT">Profile finished (date)  /  Paid (date)</TD></TR>
+    <TR><TD ALIGN="LEFT">Account type (student / organizer)</TD></TR>
+  </TABLE>>];
+
+  payment [label=<
+  <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5" COLOR="#15803d">
+    <TR><TD BGCOLOR="#15803d"><FONT COLOR="white"><B>PAYMENT</B>  (from Stripe)</FONT></TD></TR>
+    <TR><TD ALIGN="LEFT">Student  &#8594; STUDENT</TD></TR>
+    <TR><TD ALIGN="LEFT">Stripe payment ID</TD></TR>
+    <TR><TD ALIGN="LEFT">Amount ($20, non-refundable)</TD></TR>
+    <TR><TD ALIGN="LEFT">Status: paid / refunded (exceptions only)</TD></TR>
+    <TR><TD ALIGN="LEFT">Paid at</TD></TR>
+  </TABLE>>];
+
+  team [label=<
+  <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5" COLOR="#7c3aed">
+    <TR><TD BGCOLOR="#7c3aed"><FONT COLOR="white"><B>TEAM</B></FONT></TD></TR>
+    <TR><TD ALIGN="LEFT">Team name</TD></TR>
+    <TR><TD ALIGN="LEFT">Track</TD></TR>
+    <TR><TD ALIGN="LEFT">Who we're still looking for</TD></TR>
+    <TR><TD ALIGN="LEFT">Created by  &#8594; STUDENT</TD></TR>
+    <TR><TD ALIGN="LEFT">Locked in? (date locked)</TD></TR>
+  </TABLE>>];
+
+  member [label=<
+  <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5" COLOR="#7c3aed">
+    <TR><TD BGCOLOR="#ede9fe"><B>TEAM MEMBER</B></TD></TR>
+    <TR><TD ALIGN="LEFT">Team  &#8594; TEAM</TD></TR>
+    <TR><TD ALIGN="LEFT">Student  &#8594; STUDENT (one team each)</TD></TR>
+    <TR><TD ALIGN="LEFT">Joined at</TD></TR>
+  </TABLE>>];
+
+  invite [label=<
+  <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5" COLOR="#b45309">
+    <TR><TD BGCOLOR="#b45309"><FONT COLOR="white"><B>INVITE</B></FONT></TD></TR>
+    <TR><TD ALIGN="LEFT">For team  &#8594; TEAM</TD></TR>
+    <TR><TD ALIGN="LEFT">Student  &#8594; STUDENT (the one not on the team)</TD></TR>
+    <TR><TD ALIGN="LEFT">Kind: team invites student / student asks to join</TD></TR>
+    <TR><TD ALIGN="LEFT">Sent by  &#8594; STUDENT</TD></TR>
+    <TR><TD ALIGN="LEFT">Status: pending / accepted / declined / expired / cancelled</TD></TR>
+    <TR><TD ALIGN="LEFT">Sent at, expires at (48 hrs later), answered at</TD></TR>
+  </TABLE>>];
+
+  chat [label=<
+  <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5" COLOR="#be185d">
+    <TR><TD BGCOLOR="#be185d"><FONT COLOR="white"><B>CONVERSATION</B></FONT></TD></TR>
+    <TR><TD ALIGN="LEFT">Type: team chat or 1-on-1</TD></TR>
+    <TR><TD ALIGN="LEFT">Team  &#8594; TEAM (team chats only)</TD></TR>
+    <TR><TD ALIGN="LEFT">Members  &#8594; STUDENT, each with:</TD></TR>
+    <TR><TD ALIGN="LEFT">   last read at, last emailed at</TD></TR>
+  </TABLE>>];
+
+  message [label=<
+  <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5" COLOR="#be185d">
+    <TR><TD BGCOLOR="#fce7f3"><B>MESSAGE</B></TD></TR>
+    <TR><TD ALIGN="LEFT">Conversation  &#8594; CONVERSATION</TD></TR>
+    <TR><TD ALIGN="LEFT">Sender  &#8594; STUDENT</TD></TR>
+    <TR><TD ALIGN="LEFT">Text, sent at</TD></TR>
+  </TABLE>>];
+
+  settings [label=<
+  <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5" COLOR="#6b7280">
+    <TR><TD BGCOLOR="#f3f4f6"><B>SETTINGS</B>  (organizers can change)</TD></TR>
+    <TR><TD ALIGN="LEFT">Invite expiry: 48 hours</TD></TR>
+    <TR><TD ALIGN="LEFT">Max open invites per team: 5</TD></TR>
+    <TR><TD ALIGN="LEFT">Lock-in deadline</TD></TR>
+    <TR><TD ALIGN="LEFT">Payment required? (yes)</TD></TR>
+  </TABLE>>];
+
+  rules [label=<
+  <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5" COLOR="#111827" STYLE="dashed">
+    <TR><TD ALIGN="LEFT"><B>Team rules the database checks</B></TD></TR>
+    <TR><TD ALIGN="LEFT">Max 4 people  (counts TEAM MEMBER)</TD></TR>
+    <TR><TD ALIGN="LEFT">Max 2 from one school  (STUDENT &#8594; SCHOOL group)</TD></TR>
+    <TR><TD ALIGN="LEFT">4 people = 3+ schools; 3 people = 3 schools</TD></TR>
+    <TR><TD ALIGN="LEFT">Must have paid to team up  (STUDENT paid date)</TD></TR>
+    <TR><TD ALIGN="LEFT">Invites expire  (INVITE expires at)</TD></TR>
+    <TR><TD ALIGN="LEFT">Locked teams can't change  (TEAM locked)</TD></TR>
+  </TABLE>>];
+
+  school -> student   [label="  a school has\n  many students  "];
+  payment -> student  [label="  Stripe confirms\n  the $20 payment  "];
+  student -> member   [label="  joins 1 team max  ", dir=back];
+  student -> invite   [label="  sends / receives  ", dir=back];
+  student -> message  [label="  sends  ", dir=back];
+  member -> team      [label="  up to 4 per team  "];
+  invite -> team      [label="  for this team  "];
+  message -> chat     [label="  belongs to  "];
+  chat -> team        [label="  1 chat per team  ", style=dashed, constraint=false];
+  settings -> rules   [style=invis];
+
+  {rank=same; school; payment; settings}
+  {rank=same; member; invite; message; rules}
+  {rank=same; team; chat}
+}
