@@ -34,7 +34,7 @@ begin
       insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
       values (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', e, '', now(), now(), now(),
               '{"provider":"email","providers":["email"]}', '{}');
-    exception when others then continue;  -- duplicate email, skip
+    exception when others then raise notice 'skipped %: %', e, sqlerrm; continue;
     end;
 
     update public.profiles set
@@ -51,3 +51,6 @@ begin
   end loop;
   raise notice 'Added % demo students', n;
 end $$;
+
+-- Check afterwards (should be 40+ rows; if 0, read the notices above):
+--   select count(*) from public.student_directory where full_name is not null;
