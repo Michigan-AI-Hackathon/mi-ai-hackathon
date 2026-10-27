@@ -13,12 +13,16 @@ export default async function OpenTeamsPage({ searchParams }: { searchParams: Pr
     tq, supabase.from("team_members").select("team_id").eq("user_id", profile.id).maybeSingle(),
   ]);
   const ids = (teams ?? []).map((t) => t.id);
+  // Count from team_members (what the "full" check uses). The directory only lists finished, paid profiles.
+  const { data: rows } = ids.length ? await supabase.from("team_members").select("team_id").in("team_id", ids) : { data: [] };
+  const sizes = new Map<string, number>();
+  (rows ?? []).forEach((r) => sizes.set(r.team_id, (sizes.get(r.team_id) ?? 0) + 1));
   const { data: members } = ids.length
     ? await supabase.from("student_directory").select("id, full_name, school_name, team_id").in("team_id", ids)
     : { data: [] as Pick<Student, "id" | "full_name" | "school_name" | "team_id">[] };
   const byTeam = new Map<string, Pick<Student, "id" | "full_name" | "school_name">[]>();
   (members ?? []).forEach((m) => byTeam.set(m.team_id!, [...(byTeam.get(m.team_id!) ?? []), m]));
-  const open = (teams ?? []).filter((t) => (byTeam.get(t.id)?.length ?? 0) < 4);
+  const open = (teams ?? []).filter((t) => (sizes.get(t.id) ?? 0) < 4);
 
   return (
     <div>
@@ -35,7 +39,7 @@ export default async function OpenTeamsPage({ searchParams }: { searchParams: Pr
               <li key={t.id} className="panel flex flex-col gap-3">
                 <div className="flex items-baseline justify-between gap-2">
                   <h2 className="font-heading text-xl font-semibold">{t.name}</h2>
-                  <span className="text-sm text-muted">{m.length} of 4</span>
+                  <span className="text-sm text-muted">{sizes.get(t.id) ?? 0} of 4</span>
                 </div>
                 {t.track && <span className="chip w-fit">{t.track}</span>}
                 {t.needs && <p className="text-[15px]"><span className="font-semibold">Looking for:</span> {t.needs}</p>}
