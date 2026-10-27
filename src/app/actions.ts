@@ -57,12 +57,11 @@ export async function saveProfile(_prev: ActionResult, form: FormData): Promise<
 // ---------------------------------------------------------------- payment
 export async function startCheckout() {
   const { supabase, user } = await getUserOrRedirect();
-  const { data: p } = await supabase.from("profiles").select("email, paid_at").eq("id", user.id).single();
+  const { data: p } = await supabase.from("profiles").select("paid_at").eq("id", user.id).single();
   if (p?.paid_at) redirect("/dashboard");
   const origin = (await headers()).get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "";
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
-    customer_email: p?.email ?? user.email,
     client_reference_id: user.id,
     metadata: { user_id: user.id },
     payment_intent_data: { metadata: { user_id: user.id } },
