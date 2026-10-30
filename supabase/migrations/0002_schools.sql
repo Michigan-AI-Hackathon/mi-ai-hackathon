@@ -138,7 +138,7 @@ insert into public.schools (id, name, kind, rule_group) values (66, 'Lawrence Te
 insert into public.school_domains (domain, school_id) values ('ltu.edu', 66);
 insert into public.schools (id, name, kind, rule_group) values (67, 'Madonna University', 'private', null);
 insert into public.school_domains (domain, school_id) values ('madonna.edu', 67);
-insert into public.schools (id, name, kind, rule_group) values (68, 'Michigan School of Psychology', 'private', null);
+insert into public.schools (id, name, kind, rule_group) values (68, 'Michigan School of Psychology', 'graduate', null);
 insert into public.school_domains (domain, school_id) values ('msp.edu', 68);
 insert into public.schools (id, name, kind, rule_group) values (69, 'Northwood University', 'private', null);
 insert into public.school_domains (domain, school_id) values ('northwood.edu', 69);
@@ -158,10 +158,3 @@ insert into public.schools (id, name, kind, rule_group) values (75, 'Cooley Law 
 insert into public.school_domains (domain, school_id) values ('cooley.edu', 75);
 insert into public.schools (id, name, kind, rule_group) values (76, 'Cranbrook Academy of Art', 'graduate', null);
 insert into public.school_domains (domain, school_id) values ('cranbrook.edu', 76);
-insert into public.schools (id, name, kind, rule_group) values (77, 'Calvin Theological Seminary', 'graduate', null);
-insert into public.school_domains (domain, school_id) values ('calvinseminary.edu', 77);
-insert into public.schools (id, name, kind, rule_group) values (78, 'Western Theological Seminary', 'graduate', null);
-insert into public.school_domains (domain, school_id) values ('westernsem.edu', 78);
-insert into public.schools (id, name, kind, rule_group) values (79, 'Sacred Heart Major Seminary', 'graduate', null);
-insert into public.school_domains (domain, school_id) values ('shms.edu', 79);
-select setval('public.schools_id_seq', 79);
