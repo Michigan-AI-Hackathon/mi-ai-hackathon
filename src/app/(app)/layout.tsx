@@ -14,12 +14,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-line bg-card">
+      <header className="sticky top-0 z-20 border-b border-line bg-card/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <Logo href="/dashboard" />
           <div className="flex items-center gap-3 text-sm">
-            <Link href="/onboarding" className="text-muted hover:text-ink">{profile.full_name}</Link>
-            <form action="/auth/signout" method="post"><button className="text-muted hover:text-ink">Sign out</button></form>
+            <Link href="/onboarding" className="link-draw text-muted hover:text-ink">{profile.full_name}</Link>
+            <form action="/auth/signout" method="post"><button className="link-draw text-muted hover:text-ink">Sign out</button></form>
           </div>
         </div>
         <nav className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-2 sm:px-4" aria-label="Main">
@@ -31,7 +31,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <NavLink href="/messages" badge={unread}>Messages</NavLink>
         </nav>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</main>
+      <main className="rise mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</main>
     </div>
   );
 }

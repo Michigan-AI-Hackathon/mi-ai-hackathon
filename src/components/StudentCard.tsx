@@ -5,7 +5,7 @@ import type { Student } from "@/lib/types";
 
 export default function StudentCard({ s, myTeamId, myTeamLocked, canAct }: { s: Student; myTeamId: string | null; myTeamLocked: boolean; canAct: boolean }) {
   return (
-    <li className="panel flex flex-col gap-4">
+    <li className="panel panel-hover flex flex-col gap-4">
       <div className="flex gap-3">
         <Avatar url={s.avatar_url} name={s.full_name} size={48} />
         <div className="min-w-0 flex-1">

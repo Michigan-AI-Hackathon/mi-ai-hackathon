@@ -25,6 +25,8 @@
 
   --font-heading: var(--font-family-heading);
   --font-sans: var(--font-family-body);
+  --font-mono: var(--font-family-mono);
+  --color-volt: var(--color-hero-accent);
 
   --radius-sm: var(--radius-small);
   --radius-md: var(--radius-medium);
@@ -32,24 +34,85 @@
   --radius-xl: var(--radius-large);
 }
 
-html { background: var(--color-page-bg); color: var(--color-text); }
-body { font-family: var(--font-family-body); font-size: var(--text-body); -webkit-font-smoothing: antialiased; }
-h1, h2, h3 { font-family: var(--font-family-heading); font-weight: var(--heading-weight); letter-spacing: var(--heading-tracking); }
+html { background: var(--color-page-bg); color: var(--color-text); scroll-behavior: smooth; }
+body {
+  font-family: var(--font-family-body); font-size: var(--text-body); -webkit-font-smoothing: antialiased;
+  /* faint dot grid, like graph paper */
+  background-image: radial-gradient(color-mix(in srgb, var(--color-text) 11%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+h1, h2, h3 { font-family: var(--font-family-heading); font-weight: var(--heading-weight); letter-spacing: var(--heading-tracking); text-wrap: balance; }
+::selection { background: var(--color-brand-accent); color: var(--color-hero-bg); }
 
-:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; border-radius: var(--radius-small); }
+:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; border-radius: var(--radius-small); }
 
-/* Shared building blocks. Every page uses these, so restyling them restyles the site. */
-@utility btn { @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50; }
-@utility btn-primary { @apply btn bg-primary text-on-primary hover:bg-primary-hover; }
-@utility btn-secondary { @apply btn border border-line bg-card text-ink hover:border-primary; }
-@utility btn-danger { @apply btn border border-line bg-card text-danger hover:border-danger; }
-@utility input { @apply w-full rounded-md border border-line bg-card px-3 py-2.5 text-[15px] text-ink placeholder:text-muted focus:border-primary focus:outline-none; }
+/* ---------- Building blocks. Every page uses these. ---------- */
+/* Buttons: ink fill, a vermilion layer wipes in from the left on hover, and they press down on click. */
+@utility btn {
+  @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-md px-4 py-2.5 text-sm font-semibold;
+  transition: transform 160ms var(--ease-out), box-shadow 200ms var(--ease-out), border-color 200ms, color 200ms;
+  &:active:not(:disabled) { transform: translateY(1px) scale(0.985); }
+  &:disabled { @apply cursor-not-allowed opacity-50; }
+}
+@utility btn-primary {
+  @apply btn text-on-primary;
+  background: linear-gradient(var(--color-brand-accent), var(--color-brand-accent)) no-repeat left / 0% 100%, var(--color-text);
+  transition: background-size 350ms var(--ease-out), transform 160ms var(--ease-out), color 200ms;
+  &:hover:not(:disabled) { background-size: 100% 100%; color: var(--color-hero-bg); }
+}
+@utility btn-secondary {
+  @apply btn border border-line bg-card text-ink;
+  &:hover:not(:disabled) { border-color: var(--color-text); box-shadow: 3px 3px 0 var(--color-text); transform: translate(-1px, -1px); }
+  &:active:not(:disabled) { box-shadow: 0 0 0 var(--color-text); transform: translate(0, 1px); }
+}
+@utility btn-danger { @apply btn border border-line bg-card text-danger; &:hover:not(:disabled) { border-color: var(--color-error); } }
+@utility input {
+  @apply w-full rounded-md border border-line bg-card px-3 py-2.5 text-[15px] text-ink placeholder:text-muted;
+  transition: border-color 150ms, box-shadow 200ms var(--ease-out);
+  &:focus { outline: none; border-color: var(--color-text); box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-brand-accent) 28%, transparent); }
+}
 @utility label { @apply mb-1.5 block text-sm font-semibold text-ink; }
 @utility hint { @apply mt-1 text-sm text-muted; }
-@utility panel { @apply rounded-lg border border-line bg-card p-5 sm:p-6; }
-@utility chip { @apply inline-flex items-center rounded-full border border-line bg-paper px-2.5 py-0.5 text-[13px] text-ink; }
-@utility hero-panel { @apply rounded-lg bg-hero text-on-hero; }
+@utility panel {
+  @apply relative rounded-lg border border-line bg-card p-5 sm:p-6;
+  transition: transform 250ms var(--ease-out), box-shadow 250ms var(--ease-out), border-color 200ms;
+}
+/* Cards you can hover (student cards, tracks) */
+@utility panel-hover {
+  &:hover { transform: translateY(-3px); border-color: var(--color-text); box-shadow: 0 10px 0 -6px color-mix(in srgb, var(--color-text) 14%, transparent); }
+}
+@utility chip { @apply inline-flex items-center rounded-full border border-line bg-paper px-2.5 py-0.5 text-[13px] text-ink; transition: border-color 150ms, background-color 150ms; &:hover { border-color: var(--color-text); } }
+/* Dark instrument panel with a blueprint grid */
+@utility hero-panel {
+  @apply relative overflow-hidden rounded-lg bg-hero text-on-hero;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-hero-text) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-hero-text) 6%, transparent) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+/* Small uppercase monospace label, used for eyebrows, step numbers and units */
+@utility eyebrow { @apply font-mono text-xs font-medium uppercase tracking-[0.14em]; }
+
+/* ---------- Motion ---------- */
+@keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes roll-in { from { opacity: 0; transform: translateY(-55%); filter: blur(3px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes pulse-dot { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-hero-accent) 60%, transparent); } 50% { box-shadow: 0 0 0 7px transparent; } }
+@keyframes marquee { to { transform: translateX(-50%); } }
+@keyframes scan { from { transform: translateY(-100%); } to { transform: translateY(100%); } }
+@keyframes draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+.rise { opacity: 0; animation: rise 700ms var(--ease-out) forwards; animation-delay: calc(var(--i, 0) * 90ms); }
+.roll-in { animation: roll-in 420ms var(--ease-out); }
+.pulse-dot { animation: pulse-dot 1.8s ease-out infinite; }
+.marquee-track { animation: marquee 48s linear infinite; }
+.marquee:hover .marquee-track { animation-play-state: paused; }
+/* Scroll reveal: Reveal.tsx adds .in when the block enters the screen */
+.reveal { opacity: 0; transform: translateY(22px); transition: opacity 700ms var(--ease-out), transform 700ms var(--ease-out); transition-delay: calc(var(--i, 0) * 80ms); }
+.reveal.in { opacity: 1; transform: none; }
+.link-draw { background: linear-gradient(currentColor, currentColor) no-repeat left bottom / 0% 1.5px; transition: background-size 300ms var(--ease-out); }
+.link-draw:hover { background-size: 100% 1.5px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
+  .rise, .reveal { opacity: 1 !important; transform: none !important; }
 }
