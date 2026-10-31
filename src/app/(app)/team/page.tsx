@@ -1,8 +1,10 @@
 import Link from "next/link";
 import Avatar from "@/components/Avatar";
+import PageHeader from "@/components/PageHeader";
+import { SeatPips } from "@/components/Seats";
 import ActionButton from "@/components/ActionButton";
 import { cancelInvite, leaveTeam, lockTeam, respondInvite } from "@/app/actions";
-import { currentFee } from "@/lib/config";
+import { LOCK_DEADLINE_LABEL, currentFee } from "@/lib/config";
 import { requireStudent } from "@/lib/session";
 import { timeLeft } from "@/lib/time";
 import type { Student } from "@/lib/types";
@@ -15,8 +17,7 @@ export default async function TeamPage() {
   if (!membership) {
     return (
       <div className="max-w-3xl">
-        <h1 className="font-heading text-4xl font-bold">My team</h1>
-        <p className="mt-2 text-[16px] text-muted">You&apos;re not on a team yet. Start one and invite people, or ask to join a team that has open spots.</p>
+        <PageHeader eyebrow="My team" title="You're not on a team yet.">Start one and invite people, or ask to join a team that has open spots.</PageHeader>
         {profile.paid_at ? (
           <section className="panel mt-6">
             <h2 className="mb-4 font-heading text-xl font-semibold">Start a team</h2>
@@ -54,19 +55,21 @@ export default async function TeamPage() {
   return (
     <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr]">
       <div className="space-y-8">
-        <div>
-          <h1 className="font-heading text-4xl font-bold">{team?.name}</h1>
-          <p className="mt-2 text-[16px] text-muted">
-            {team?.track ?? "Track not decided"}, {list.length} of 4 people from {schools} {schools === 1 ? "school" : "schools"}
-            {locked && <span className="ml-2 font-semibold text-ok">Locked in</span>}
-          </p>
+        <div className="rise">
+          <p className="eyebrow text-primary">{team?.track ?? "Track not decided"}{locked && <span className="ml-3 rounded-full bg-ink px-2.5 py-1 text-[11px] text-card">Locked in</span>}</p>
+          <h1 className="mt-2 font-heading text-4xl font-bold sm:text-6xl">{team?.name}</h1>
+          <div className="mt-4 flex flex-wrap items-center gap-4 text-[15px] text-muted">
+            <SeatPips filled={list.length} />
+            <span>{list.length} of 4 people from {schools} {schools === 1 ? "school" : "schools"}</span>
+          </div>
         </div>
 
         <ul className="grid gap-3 sm:grid-cols-2" aria-label="Team spots">
           {[0, 1, 2, 3].map((i) => {
             const m = list[i];
             return m ? (
-              <li key={m.id} className="panel">
+              <li key={m.id} className={`panel panel-hover rise ${m.id === profile.id ? "border-ink" : ""}`} style={{ "--i": i + 1 } as React.CSSProperties}>
+                <span className="eyebrow mb-3 block text-muted">Seat {i + 1}</span>
                 <div className="flex items-center gap-3">
                   <Avatar url={m.avatar_url} name={m.full_name} size={44} />
                   <div className="min-w-0">
@@ -77,8 +80,13 @@ export default async function TeamPage() {
                 <p className="mt-2 text-sm text-muted">{m.study_area}</p>
               </li>
             ) : (
-              <li key={i} className="flex min-h-28 items-center justify-center rounded-xl border-2 border-dashed border-line p-5 text-[15px] text-muted">
-                {locked ? "Empty" : <Link href="/people?status=no-team&others=1" className="font-medium text-primary hover:underline">Find someone for this spot</Link>}
+              <li key={i} className="rise" style={{ "--i": i + 1 } as React.CSSProperties}>
+                {locked ? <div className="grid min-h-36 place-items-center rounded-xl border border-dashed border-line text-[15px] text-muted">Empty</div> : (
+                  <Link href="/people?status=no-team&others=1" className="group grid min-h-36 place-content-center justify-items-center gap-2 rounded-xl border border-dashed border-ink/30 p-5 text-[15px] text-muted transition-all duration-300 hover:border-ink hover:bg-card hover:text-ink">
+                    <span className="grid h-10 w-10 place-items-center rounded-full border border-current text-xl transition-transform duration-500 [transition-timing-function:var(--ease-spring)] group-hover:rotate-90">+</span>
+                    <span className="font-medium">Seat {i + 1}: find someone</span>
+                  </Link>
+                )}
               </li>
             );
           })}
@@ -140,6 +148,7 @@ export default async function TeamPage() {
             <p className="mt-2 text-[15px] text-muted">Your spot is guaranteed. To change members, email an organizer.</p>
           ) : (
             <>
+              <p className="mt-2 text-sm font-medium text-ink">Lock-in deadline: {LOCK_DEADLINE_LABEL.toLowerCase()}</p>
               <p className="mt-2 text-[15px] text-muted">Locked teams are guaranteed a spot. After you lock in, nobody can join or leave.</p>
               {problem ? (
                 <p className="mt-3 text-[15px] text-warn">{problem as string}</p>

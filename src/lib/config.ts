@@ -27,6 +27,9 @@ export function avatarSrc(v: string | null | undefined) {
   return (AVATAR_PRESETS as readonly string[]).includes(v) ? `/avatars/${v}.svg` : v;
 }
 
+// Shown as placeholders until organizers confirm.
+export const LOCK_DEADLINE_LABEL = "To be announced";
+
 export const TRACKS = ["FinTech", "HealthTech", "SportsTech", "Industry 4.0"] as const;
 
 export const YEARS = [

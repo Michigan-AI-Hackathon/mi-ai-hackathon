@@ -37,9 +37,6 @@
 html { background: var(--color-page-bg); color: var(--color-text); scroll-behavior: smooth; }
 body {
   font-family: var(--font-family-body); font-size: var(--text-body); -webkit-font-smoothing: antialiased;
-  /* faint dot grid, like graph paper */
-  background-image: radial-gradient(color-mix(in srgb, var(--color-text) 11%, transparent) 1px, transparent 1px);
-  background-size: 22px 22px;
 }
 h1, h2, h3 { font-family: var(--font-family-heading); font-weight: var(--heading-weight); letter-spacing: var(--heading-tracking); text-wrap: balance; }
 ::selection { background: var(--color-brand-accent); color: var(--color-hero-bg); }
@@ -82,20 +79,18 @@ h1, h2, h3 { font-family: var(--font-family-heading); font-weight: var(--heading
   &:hover { transform: translateY(-3px); border-color: var(--color-text); box-shadow: 0 10px 0 -6px color-mix(in srgb, var(--color-text) 14%, transparent); }
 }
 @utility chip { @apply inline-flex items-center rounded-full border border-line bg-paper px-2.5 py-0.5 text-[13px] text-ink; transition: border-color 150ms, background-color 150ms; &:hover { border-color: var(--color-text); } }
-/* Dark instrument panel with a blueprint grid */
+/* Dark feature panel with a warm glow in the corner */
 @utility hero-panel {
-  @apply relative overflow-hidden rounded-lg bg-hero text-on-hero;
-  background-image:
-    linear-gradient(color-mix(in srgb, var(--color-hero-text) 6%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--color-hero-text) 6%, transparent) 1px, transparent 1px);
-  background-size: 32px 32px;
+  @apply relative overflow-hidden rounded-xl bg-hero text-on-hero;
+  background-image: radial-gradient(60% 90% at 100% 0%, color-mix(in srgb, var(--color-hero-accent) 24%, transparent), transparent 70%),
+                    radial-gradient(40% 60% at 0% 100%, color-mix(in srgb, var(--color-hero-accent) 10%, transparent), transparent 70%);
 }
-/* Small uppercase monospace label, used for eyebrows, step numbers and units */
-@utility eyebrow { @apply font-mono text-xs font-medium uppercase tracking-[0.14em]; }
+/* Small uppercase label for section names */
+@utility eyebrow { @apply text-[12px] font-semibold uppercase tracking-[0.14em]; }
 
 /* ---------- Motion ---------- */
 @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
-@keyframes roll-in { from { opacity: 0; transform: translateY(-55%); filter: blur(3px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes roll-in { from { opacity: 0; transform: translateY(-28%); filter: blur(2px); } to { opacity: 1; transform: none; filter: none; } }
 @keyframes pulse-dot { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-hero-accent) 60%, transparent); } 50% { box-shadow: 0 0 0 7px transparent; } }
 @keyframes marquee { to { transform: translateX(-50%); } }
 @keyframes scan { from { transform: translateY(-100%); } to { transform: translateY(100%); } }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PageHeader from "@/components/PageHeader";
 import StudentCard from "@/components/StudentCard";
 import { currentFee, SKILL_SUGGESTIONS, TRACKS } from "@/lib/config";
 import { requireStudent } from "@/lib/session";
@@ -33,8 +34,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
 
   return (
     <div>
-      <h1 className="font-heading text-4xl font-bold">Find teammates</h1>
-      <p className="mt-2 text-[16px] text-muted">Search students from every school. Invite someone to your team, ask to join theirs, or send a message.</p>
+      <PageHeader eyebrow="Directory" title="Find teammates">Search students from every school. Invite someone to your team, ask to join theirs, or send a message.</PageHeader>
       {!canAct && <p className="mt-4 rounded-lg bg-warn/10 px-4 py-3 text-[15px] text-warn">Pay the {currentFee().label} registration fee from your dashboard to invite or message people.</p>}
 
       <form className="panel mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-6" role="search">
@@ -82,7 +82,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
       {list.length === 0 ? (
         <div className="panel mt-3 text-[15px]">No students match those filters. Try removing one.</div>
       ) : (
-        <ul className="mt-3 grid gap-4 md:grid-cols-2">
+        <ul className="mt-4 grid gap-4 md:grid-cols-2">
           {list.map((s) => <StudentCard key={s.id} s={s} myTeamId={myTeamId} myTeamLocked={myTeamLocked} canAct={canAct} />)}
         </ul>
       )}

@@ -4,7 +4,7 @@
    Change a value, save, and every page updates. See /design to preview.
 
    Direction: warm bone paper, blue-black ink, a vermilion signal color,
-   and a volt-lime that only appears on dark "instrument" panels.
+   and a soft orange glow on the dark countdown panel.
    ===================================================================== */
 :root {
   /* ---------- Colors ---------- */
@@ -21,7 +21,7 @@
 
   --color-hero-bg: #0b0e14;          /* countdown / instrument panels */
   --color-hero-text: #f1efe6;
-  --color-hero-accent: #d4ff3a;      /* volt: digits and live indicators on dark only */
+  --color-hero-accent: #ff8a57;      /* warm glow on dark panels */
 
   --color-success: #1b7a4b;
   --color-warning: #94620a;

@@ -51,7 +51,7 @@ export default function Chat({ conversationId, me, names, initial }: { conversat
             return (
               <li key={m.id} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
                 <span className="mb-1 text-xs text-muted">{names[m.sender_id] ?? "Student"}, {fmt(m.created_at)}</span>
-                <p className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed ${mine ? "bg-primary text-on-primary" : "bg-paper text-ink ring-1 ring-line"}`}>{m.body}</p>
+                <p className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed ${mine ? "rounded-br-md bg-ink text-card" : "rounded-bl-md bg-card text-ink ring-1 ring-line"}`}>{m.body}</p>
               </li>
             );
           })}

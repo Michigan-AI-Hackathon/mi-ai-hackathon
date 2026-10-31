@@ -13,6 +13,8 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  if (process.env.NODE_ENV === "development" && request.cookies.get("dev_preview")) return NextResponse.next({ request });
+
   let response = NextResponse.next({ request });
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

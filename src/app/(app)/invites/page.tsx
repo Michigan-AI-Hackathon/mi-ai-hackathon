@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PageHeader from "@/components/PageHeader";
 import ActionButton from "@/components/ActionButton";
 import { cancelInvite, respondInvite } from "@/app/actions";
 import { requireStudent } from "@/lib/session";
@@ -18,10 +19,7 @@ export default async function InvitesPage() {
 
   return (
     <div className="max-w-3xl space-y-8">
-      <div>
-        <h1 className="font-heading text-4xl font-bold">Invites</h1>
-        <p className="mt-2 text-[16px] text-muted">Invites expire after 48 hours so nobody holds a spot forever.</p>
-      </div>
+      <PageHeader eyebrow="Inbox" title="Invites" className="mb-0">Invites expire after 48 hours so nobody holds a spot forever.</PageHeader>
 
       <section>
         <h2 className="font-heading text-2xl font-semibold">Invites to join a team</h2>
@@ -30,7 +28,7 @@ export default async function InvitesPage() {
         ) : (
           <ul className="mt-3 space-y-3">
             {received.map((r) => (
-              <li key={r.id} className="panel flex flex-wrap items-center justify-between gap-4">
+              <li key={r.id} className="panel panel-hover rise flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <p className="font-heading text-lg font-semibold">{r.team?.name}</p>
                   <p className="text-[15px] text-muted">{r.team?.track ?? "Track not decided"}, {timeLeft(r.expires_at)}</p>
