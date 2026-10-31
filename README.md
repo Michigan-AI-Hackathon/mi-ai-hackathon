@@ -24,17 +24,19 @@ find teammates, form a team that follows the school-mix rules, and message each 
 
 - At most 4 people
 - At most 2 from the same school
-- A team of 4 needs at least 3 schools
-- A team of 3 needs 3 different schools
+- A team needs all 4 people to lock in, from at least 3 schools
+- A team can have only as many open invites as it has open spots
 - Everyone must have paid before the team can lock in
 - Locked teams can't add or lose members
 
-They live in `supabase/migrations/0001_init.sql` (`team_add_problem`, `team_lock_problem`), so no page bug can break them.
+They live in `supabase/migrations/0001_init.sql` and `0005_team_rules_avatars.sql` (`team_add_problem`, `team_lock_problem`, `send_invite`), so no page bug can break them.
 Run the tests any time: `node supabase/tests/rules.test.mjs` (27 checks, runs in memory, no setup).
 
-**UM campuses:** Ann Arbor, Dearborn and Flint share `umich.edu` and currently count as ONE school for these rules.
-To count them separately, run in the Supabase SQL editor:
-`update public.schools set rule_group = null where rule_group = 'umich';`
+**UM campuses:** Ann Arbor, Dearborn and Flint share `umich.edu` but count as THREE separate schools (migration 0005).
+
+**Pricing:** set `EARLY_BIRD` in `src/lib/config.ts` for an early-bird price with an end date. Checkout also accepts coupon codes; create them in the Stripe dashboard (Product catalog > Coupons > add a promotion code).
+
+**Avatars:** optional. Four presets in `public/avatars`, or an upload to the `avatars` storage bucket (migration 0006).
 
 ## Setup (about an hour, all on the aihackathonumich@gmail.com accounts)
 

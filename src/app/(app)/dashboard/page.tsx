@@ -2,7 +2,7 @@ import Link from "next/link";
 import Countdown from "@/components/Countdown";
 import PayButton from "@/components/PayButton";
 import { startCheckout } from "@/app/actions";
-import { EVENT } from "@/lib/config";
+import { EVENT, currentFee } from "@/lib/config";
 import { requireStudent } from "@/lib/session";
 
 function Step({ done, title, children }: { done: boolean; title: string; children?: React.ReactNode }) {
@@ -33,6 +33,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     teamSize = count ?? 0;
   }
   const paid = !!profile.paid_at;
+  const fee = currentFee();
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1.5fr_1fr]">
@@ -52,13 +53,13 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           <Step done title="Set up your profile">
             <Link href="/onboarding" className="font-medium text-primary hover:underline">Edit your profile</Link>
           </Step>
-          <Step done={paid} title={paid ? "Registration paid" : `Pay the ${EVENT.feeLabel} registration fee`}>
+          <Step done={paid} title={paid ? "Registration paid" : `Pay the ${fee.label} registration fee`}>
             {paid ? (
               <>Paid {new Date(profile.paid_at!).toLocaleDateString()}.</>
             ) : (
               <>
-                <p>The fee is non-refundable. You need to pay before you can join a team or appear in search.</p>
-                <form action={startCheckout} className="mt-3"><PayButton label={`Pay ${EVENT.feeLabel}`} /></form>
+                <p>{fee.earlyBird ? "Early-bird price. " : ""}Have a coupon code? You can enter it at checkout. The fee is non-refundable. You need to pay before you can join a team or appear in search.</p>
+                <form action={startCheckout} className="mt-3"><PayButton label={`Pay ${fee.label}`} /></form>
               </>
             )}
           </Step>

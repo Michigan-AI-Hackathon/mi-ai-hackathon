@@ -1,7 +1,8 @@
 import Link from "next/link";
+import Avatar from "@/components/Avatar";
 import ActionButton from "@/components/ActionButton";
 import { cancelInvite, leaveTeam, lockTeam, respondInvite } from "@/app/actions";
-import { EVENT } from "@/lib/config";
+import { currentFee } from "@/lib/config";
 import { requireStudent } from "@/lib/session";
 import { timeLeft } from "@/lib/time";
 import type { Student } from "@/lib/types";
@@ -22,7 +23,7 @@ export default async function TeamPage() {
             <TeamForm mode="create" />
           </section>
         ) : (
-          <p className="mt-6 rounded-lg bg-warn/10 px-4 py-3 text-[15px] text-warn">Pay the {EVENT.feeLabel} registration fee from your <Link href="/dashboard" className="underline">dashboard</Link> to start or join a team.</p>
+          <p className="mt-6 rounded-lg bg-warn/10 px-4 py-3 text-[15px] text-warn">Pay the {currentFee().label} registration fee from your <Link href="/dashboard" className="underline">dashboard</Link> to start or join a team.</p>
         )}
         <p className="mt-6 text-[15px]">Or <Link href="/teams" className="font-medium text-primary hover:underline">browse open teams</Link>, and check your <Link href="/invites" className="font-medium text-primary hover:underline">invites</Link>.</p>
       </div>
@@ -47,6 +48,8 @@ export default async function TeamPage() {
   const requests = (invites ?? []).filter((i) => i.kind === "request");
   const schools = new Set(list.map((m) => m.school_group)).size;
   const locked = !!team?.locked_at;
+  const openSpots = 4 - list.length;
+  const spotsLeftToInvite = openSpots - sent.length;
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr]">
@@ -64,9 +67,14 @@ export default async function TeamPage() {
             const m = list[i];
             return m ? (
               <li key={m.id} className="panel">
-                <Link href={`/people/${m.id}`} className="font-heading text-lg font-semibold hover:text-primary">{m.full_name}{m.id === profile.id && " (you)"}</Link>
-                <p className="text-[15px] text-muted">{m.school_name}</p>
-                <p className="mt-1 text-sm text-muted">{m.study_area}</p>
+                <div className="flex items-center gap-3">
+                  <Avatar url={m.avatar_url} name={m.full_name} size={44} />
+                  <div className="min-w-0">
+                    <Link href={`/people/${m.id}`} className="font-heading text-lg font-semibold hover:text-primary">{m.full_name}{m.id === profile.id && " (you)"}</Link>
+                    <p className="text-[15px] text-muted">{m.school_name}</p>
+                  </div>
+                </div>
+                <p className="mt-2 text-sm text-muted">{m.study_area}</p>
               </li>
             ) : (
               <li key={i} className="flex min-h-28 items-center justify-center rounded-xl border-2 border-dashed border-line p-5 text-[15px] text-muted">
@@ -92,6 +100,13 @@ export default async function TeamPage() {
               ))}
             </ul>
           </section>
+        )}
+
+        {!locked && openSpots > 0 && (
+          <p className="text-[15px] text-muted">
+            {openSpots} open {openSpots === 1 ? "spot" : "spots"}. You can send {spotsLeftToInvite} more {spotsLeftToInvite === 1 ? "invite" : "invites"} right now.
+            Any member can answer a request to join, so no one person picks the team.
+          </p>
         )}
 
         {sent.length > 0 && !locked && (
@@ -137,10 +152,11 @@ export default async function TeamPage() {
         <div className="panel text-[15px]">
           <h2 className="font-heading text-lg font-semibold">Team rules</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-muted">
-            <li>Up to 4 people</li>
+            <li>4 people per team</li>
             <li>No more than 2 from the same school</li>
             <li>A team of 4 needs at least 3 schools</li>
-            <li>A team of 3 needs 3 different schools</li>
+            <li>You need all 4 people to lock in</li>
+            <li>UM Ann Arbor, Dearborn and Flint count as different schools</li>
             <li>Everyone pays the registration fee before locking in</li>
           </ul>
         </div>

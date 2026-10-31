@@ -18,6 +18,7 @@ await db.exec(`
 `);
 await db.exec(read("0001_init.sql"));
 await db.exec(read("0002_schools.sql"));
+await db.exec(read("0005_team_rules_avatars.sql"));
 // Supabase grants table access to these roles by default; RLS does the filtering.
 await db.exec(`grant usage on schema public, auth to authenticated; grant all on all tables in schema public to authenticated; grant execute on function auth.uid() to authenticated;`);
 
@@ -84,8 +85,14 @@ await as(wsu1); await db.query(`select public.respond_invite($1, true)`, [inv3])
 await as(msu1);
 await expectError("second doubled school blocked (4 must span 3 schools)", `select public.send_invite('${wsu2}')`, "different school");
 
-// 3 people with 2 MSU can't lock
-await expectError("team of 3 with a repeat school can't lock", `select public.lock_team()`, "different schools");
+// 3 people can't lock, even from 3 schools
+await expectError("team of 3 can't lock", `select public.lock_team()`, "4 people");
+
+// open invites are capped by open spots: 3 members -> 1 spot -> 1 invite
+const hope = await signup("h@hope.edu"); await ready(hope);
+await db.query(`select public.send_invite('${ou1}')`);
+await expectError("2nd invite blocked when only 1 spot is open", `select public.send_invite('${hope}')`, "1 open spot");
+await db.query(`update invites set status='cancelled' where team_id=$1 and status='pending'`, [team]);
 
 // request to join from Oakland -> accepted by a member
 await as(ou1);
@@ -101,28 +108,16 @@ await db.query(`select public.lock_team()`);
 ok("valid team of 4 locks", (await db.query(`select locked_at is not null l from teams where id=$1`, [team])).rows[0].l);
 await expectError("can't leave a locked team", `select public.leave_team()`, "locked");
 
-// UM campuses count as one school (rule_group 'umich')
+// UM campuses are separate schools: Ann Arbor + Dearborn + GVSU + Hope = 4 people, 4 schools
 await as(um);
 const t2 = (await db.query(`select public.create_team('Blue') as id`)).rows[0].id;
-const i4 = (await db.query(`select public.send_invite($1) as id`, [umd])).rows[0].id;
-await as(umd); await db.query(`select public.respond_invite($1, true)`, [i4]);
-await as(um);
-const i5 = (await db.query(`select public.send_invite($1) as id`, [gv])).rows[0].id;
-await as(gv); await db.query(`select public.respond_invite($1, true)`, [i5]);
-await as(um);
-await expectError("Ann Arbor + Dearborn + GVSU = only 2 schools, can't lock as 3", `select public.lock_team()`, "different schools");
-
-// a team of 3 from 3 different schools locks
-await as(wsu2);
-const t3 = (await db.query(`select public.create_team('Three') as id`)).rows[0].id;
-const ia = (await db.query(`select public.send_invite($1) as id`, [msu3])).rows[0].id;
-await as(msu3); await db.query(`select public.respond_invite($1, true)`, [ia]);
-const extra = await signup("x@hope.edu"); await ready(extra);
-await as(wsu2);
-const ib = (await db.query(`select public.send_invite($1) as id`, [extra])).rows[0].id;
-await as(extra); await db.query(`select public.respond_invite($1, true)`, [ib]);
-await as(wsu2); await db.query(`select public.lock_team()`);
-ok("team of 3 from 3 schools locks", (await db.query(`select locked_at is not null l from teams where id=$1`, [t3])).rows[0].l);
+for (const who of [umd, gv, hope]) {
+  await as(um);
+  const iv = (await db.query(`select public.send_invite($1) as id`, [who])).rows[0].id;
+  await as(who); await db.query(`select public.respond_invite($1, true)`, [iv]);
+}
+await as(um); await db.query(`select public.lock_team()`);
+ok("Ann Arbor + Dearborn count as different schools", (await db.query(`select locked_at is not null l from teams where id=$1`, [t2])).rows[0].l);
 
 // expiry
 const solo = await signup("s@kzoo.edu"); await ready(solo);

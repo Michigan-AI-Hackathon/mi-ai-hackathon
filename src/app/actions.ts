@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { stripe } from "@/lib/stripe";
-import { EVENT, TRACKS, YEARS } from "@/lib/config";
+import { AVATAR_PRESETS, EVENT, TRACKS, YEARS, currentFee } from "@/lib/config";
 
 export type ActionResult = { error?: string; ok?: string } | null;
 
@@ -28,11 +28,15 @@ export async function saveProfile(_prev: ActionResult, form: FormData): Promise<
   const tracks = list("tracks").filter((t) => (TRACKS as readonly string[]).includes(t));
   const schoolRaw = form.get("school_id");
   const linkedin = String(form.get("linkedin_url") ?? "").trim();
+  const avatar = String(form.get("avatar_url") ?? "").trim();
 
   if (full_name.length < 2) return { error: "Add your name." };
   if (!(YEARS as readonly string[]).includes(year)) return { error: "Pick your year." };
   if (!study_area) return { error: "Add what you study." };
   if (!tracks.length) return { error: "Pick at least one track." };
+  const ownFolder = `/storage/v1/object/public/avatars/${user.id}/`;
+  if (avatar && !(AVATAR_PRESETS as readonly string[]).includes(avatar)
+      && !(avatar.startsWith("https://") && avatar.includes(ownFolder))) return { error: "That picture isn't valid. Pick another." };
   if (linkedin && !/^https?:\/\/(www\.)?linkedin\.com\//i.test(linkedin)) return { error: "LinkedIn links start with https://linkedin.com/" };
 
   const { data: current } = await supabase.from("profiles").select("onboarded_at, school_id").eq("id", user.id).single();
@@ -42,6 +46,7 @@ export async function saveProfile(_prev: ActionResult, form: FormData): Promise<
     bio: String(form.get("bio") ?? "").trim().slice(0, 500) || null,
     looking_for_team: form.get("looking_for_team") === "on",
     linkedin_url: linkedin || null,
+    avatar_url: avatar || null,
   };
   if (schoolRaw) update.school_id = Number(schoolRaw);
   if (!current?.school_id && !schoolRaw) return { error: "Pick your campus." };
@@ -59,9 +64,11 @@ export async function startCheckout() {
   const { supabase, user } = await getUserOrRedirect();
   const { data: p } = await supabase.from("profiles").select("paid_at").eq("id", user.id).single();
   if (p?.paid_at) redirect("/dashboard");
+  const fee = currentFee();
   const origin = (await headers()).get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "";
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
+    allow_promotion_codes: true, // coupons (e.g. early-bird codes) are created in the Stripe dashboard
     client_reference_id: user.id,
     metadata: { user_id: user.id },
     payment_intent_data: { metadata: { user_id: user.id } },
@@ -69,9 +76,9 @@ export async function startCheckout() {
       quantity: 1,
       price_data: {
         currency: "usd",
-        unit_amount: EVENT.feeCents,
+        unit_amount: fee.cents,
         product_data: {
-          name: `${EVENT.name} registration fee`,
+          name: `${EVENT.name} registration fee${fee.earlyBird ? " (early bird)" : ""}`,
           description: "Non-refundable.",
         },
       },

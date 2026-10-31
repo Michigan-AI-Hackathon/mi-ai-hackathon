@@ -10,6 +10,23 @@ export const EVENT = {
   feeLabel: "$20",
 };
 
+// Early-bird price. Set to null to turn it off. Before `endsAt` the fee is `feeCents`.
+export const EARLY_BIRD: { feeCents: number; endsAt: string; label: string } | null = null;
+// e.g. { feeCents: 1500, endsAt: "2027-02-01T00:00:00-05:00", label: "$15" }
+
+export function currentFee(now = new Date()) {
+  if (EARLY_BIRD && now < new Date(EARLY_BIRD.endsAt)) return { cents: EARLY_BIRD.feeCents, label: EARLY_BIRD.label, earlyBird: true };
+  return { cents: EVENT.feeCents, label: EVENT.feeLabel, earlyBird: false };
+}
+
+export const AVATAR_PRESETS = ["preset-1", "preset-2", "preset-3", "preset-4"] as const;
+
+// avatar_url is either a preset key or the full URL of an uploaded image.
+export function avatarSrc(v: string | null | undefined) {
+  if (!v) return null;
+  return (AVATAR_PRESETS as readonly string[]).includes(v) ? `/avatars/${v}.svg` : v;
+}
+
 export const TRACKS = ["FinTech", "HealthTech", "SportsTech", "Industry 4.0"] as const;
 
 export const YEARS = [

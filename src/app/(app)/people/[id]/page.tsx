@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import Avatar from "@/components/Avatar";
 import StudentActions from "@/components/StudentActions";
 import { requireStudent } from "@/lib/session";
 import type { Student } from "@/lib/types";
@@ -16,7 +17,7 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
   return (
     <div className="max-w-3xl">
       <Link href="/people" className="text-sm font-medium text-primary hover:underline">Back to search</Link>
-      <h1 className="mt-4 font-heading text-4xl font-bold">{s.full_name}</h1>
+      <div className="mt-4 flex items-center gap-4"><Avatar url={s.avatar_url} name={s.full_name} size={72} /><h1 className="font-heading text-4xl font-bold">{s.full_name}</h1></div>
       <p className="mt-1 text-lg text-muted">{s.school_name}{s.study_area ? `, ${s.study_area}` : ""}</p>
       <p className="mt-2 text-[15px]">{s.team_id ? <>On team <strong>{s.team_name}</strong></> : s.looking_for_team ? "Looking for a team" : "No team yet"}</p>
 

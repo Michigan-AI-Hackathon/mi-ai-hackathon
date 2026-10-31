@@ -1,11 +1,14 @@
 import Link from "next/link";
+import Avatar from "@/components/Avatar";
 import StudentActions from "@/components/StudentActions";
 import type { Student } from "@/lib/types";
 
 export default function StudentCard({ s, myTeamId, myTeamLocked, canAct }: { s: Student; myTeamId: string | null; myTeamLocked: boolean; canAct: boolean }) {
   return (
     <li className="panel flex flex-col gap-4">
-      <div>
+      <div className="flex gap-3">
+        <Avatar url={s.avatar_url} name={s.full_name} size={48} />
+        <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <Link href={`/people/${s.id}`} className="font-heading text-xl font-semibold hover:text-primary">{s.full_name}</Link>
           <span className={`text-sm ${s.team_id ? "text-muted" : "font-medium text-ok"}`}>
@@ -13,6 +16,7 @@ export default function StudentCard({ s, myTeamId, myTeamLocked, canAct }: { s: 
           </span>
         </div>
         <p className="mt-0.5 text-[15px] text-muted">{s.school_name}{s.study_area ? `, ${s.study_area}` : ""}</p>
+        </div>
       </div>
       {s.bio && <p className="line-clamp-3 text-[15px] leading-relaxed">{s.bio}</p>}
       {(s.tracks.length > 0 || s.skills.length > 0) && (

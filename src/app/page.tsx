@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Countdown from "@/components/Countdown";
 import Logo from "@/components/Logo";
-import { EVENT, TRACKS } from "@/lib/config";
+import { EVENT, currentFee, TRACKS } from "@/lib/config";
 import { createClient } from "@/lib/supabase/server";
 
 const exampleTeam = [
@@ -13,7 +13,7 @@ const exampleTeam = [
 
 const steps = [
   { title: "Sign up with your school email", body: "Any student at a Michigan college or university can join. Use your school address, not a personal one." },
-  { title: "Build your profile and register", body: `Tell people what you're good at and which track you want, then pay the ${EVENT.feeLabel} registration fee.` },
+  { title: "Build your profile and register", body: `Tell people what you're good at and which track you want, then pay the ${currentFee().label} registration fee.` },
   { title: "Find teammates", body: "Search students by skill, track and school. Invite someone to your team or ask to join theirs, and message them right on the site." },
   { title: "Lock in your team", body: "Teams that lock in before the deadline are guaranteed a spot. Students without a team are matched at the event." },
 ];
@@ -62,7 +62,7 @@ export default async function Home() {
             <dl className="mt-8 grid gap-4 border-t border-on-hero/25 pt-6 text-[15px] sm:grid-cols-3">
               <div><dt className="text-on-hero/70">When</dt><dd className="font-semibold">{EVENT.dateLabel}</dd></div>
               <div><dt className="text-on-hero/70">Where</dt><dd className="font-semibold">{EVENT.place}</dd></div>
-              <div><dt className="text-on-hero/70">Registration</dt><dd className="font-semibold">{EVENT.feeLabel}, non-refundable</dd></div>
+              <div><dt className="text-on-hero/70">Registration</dt><dd className="font-semibold">{currentFee().label}, non-refundable</dd></div>
             </dl>
           </div>
         </section>
@@ -78,7 +78,7 @@ export default async function Home() {
               <ul className="mt-6 space-y-3 text-[16px]">
                 <li className="flex gap-3"><span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />Teams of 4, from at least 3 schools</li>
                 <li className="flex gap-3"><span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />No more than 2 people from the same school</li>
-                <li className="flex gap-3"><span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />A team of 3 needs 3 different schools</li>
+                <li className="flex gap-3"><span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />Every team has all 4 people before it locks in</li>
               </ul>
             </div>
             <div className="grid grid-cols-2 gap-3" aria-label="Example team of four">
