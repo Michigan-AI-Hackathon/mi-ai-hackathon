@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { sendUnreadDigests } from "@/lib/email";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -5,7 +6,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // Called every 10 minutes by Supabase pg_cron (see supabase/migrations/0003_cron.sql).
 // 1. Expires old invites. 2. Emails students with messages unread for 15+ minutes (once per batch).
 export async function GET(req: Request) {
-  if (req.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
+  // Fail closed: with no CRON_SECRET configured nothing is accepted (a plain !== would match "Bearer undefined").
+  const secret = process.env.CRON_SECRET ?? "";
+  const given = Buffer.from(req.headers.get("authorization") ?? "");
+  const want = Buffer.from(`Bearer ${secret}`);
+  if (secret.length < 16 || given.length !== want.length || !timingSafeEqual(given, want)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const db = createAdminClient();

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { claimSignupSource } from "@/lib/claim-source";
 
 export default function LoginForm() {
   const supabase = createClient();
@@ -60,6 +61,7 @@ export default function LoginForm() {
     const { error: verifyError } = await supabase.auth.verifyOtp({ email, token: code.trim(), type: "email" });
     setBusy(false);
     if (verifyError) return setError("That code didn't work. Check the latest email we sent, or request a new code.");
+    await claimSignupSource(supabase);
     router.replace(next);
     router.refresh();
   }

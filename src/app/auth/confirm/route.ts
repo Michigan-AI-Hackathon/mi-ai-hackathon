@@ -10,17 +10,27 @@ export async function GET(request: NextRequest) {
   const token_hash = searchParams.get("token_hash");
   const type = (searchParams.get("type") ?? "email") as EmailOtpType;
   const nextParam = searchParams.get("next");
-  const next = nextParam?.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "/dashboard";
+  // only plain same-site paths: "//evil.com" and "/\\evil.com" are treated as other sites by browsers
+  const next = nextParam && /^\/(?![/\\])[\w\-./?=&%]*$/.test(nextParam) ? nextParam : "/dashboard";
   const supabase = await createClient();
+
+  // credit a brand-new account to the event QR code it came from, then forget the cookie
+  const done = async () => {
+    const src = request.cookies.get("hk_src")?.value;
+    if (src && /^[a-z0-9-]{3,40}$/.test(src)) await supabase.rpc("claim_signup_source", { p_slug: src });
+    const res = NextResponse.redirect(`${origin}${next}`);
+    res.cookies.delete("hk_src");
+    return res;
+  };
 
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return NextResponse.redirect(`${origin}${next}`);
+    if (!error) return done();
     console.error("Sign-in link (code) failed:", error.message); // visible in Vercel > Logs
   }
   if (token_hash) {
     const { error } = await supabase.auth.verifyOtp({ type, token_hash });
-    if (!error) return NextResponse.redirect(`${origin}${next}`);
+    if (!error) return done();
     console.error("Sign-in link (token) failed:", error.message);
   }
   if (!code && !token_hash) console.error("Sign-in link had no code:", request.url);

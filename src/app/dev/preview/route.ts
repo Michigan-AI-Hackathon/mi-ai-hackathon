@@ -6,6 +6,6 @@ export function GET(req: NextRequest) {
   const as = req.nextUrl.searchParams.get("as") ?? "team";
   const next = req.nextUrl.searchParams.get("next") ?? "/dashboard";
   const res = NextResponse.redirect(new URL(next.startsWith("/") ? next : "/dashboard", req.url));
-  res.cookies.set("dev_preview", ["new", "unpaid", "solo", "team"].includes(as) ? as : "team", { path: "/" });
+  res.cookies.set("dev_preview", ["new", "unpaid", "solo", "team", "admin"].includes(as) ? as : "team", { path: "/" });
   return res;
 }

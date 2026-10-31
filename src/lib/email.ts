@@ -30,3 +30,44 @@ export async function sendUnreadDigests(rows: { email: string; full_name: string
   }
   return { sent };
 }
+
+const esc = (t: string) => t.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+
+type Mail = { to: string; subject: string; text: string; html: string };
+async function sendBatch(mails: Mail[]) {
+  if (!mails.length) return { sent: 0 };
+  if (!process.env.RESEND_API_KEY) return { sent: 0, skipped: "RESEND_API_KEY not set" };
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  let sent = 0;
+  for (let i = 0; i < mails.length; i += 100) {
+    const batch = mails.slice(i, i + 100).map((m) => ({ from: FROM, ...m }));
+    const { error } = await resend.batch.send(batch);
+    if (error) throw new Error(error.message);
+    sent += batch.length;
+  }
+  return { sent };
+}
+
+// Organizer announcement. The body is plain text; it is escaped, never treated as HTML.
+export async function sendBroadcast(recipients: { email: string; full_name: string | null }[], subject: string, body: string) {
+  return sendBatch(recipients.map((r) => {
+    const first = r.full_name?.split(" ")[0] ?? "there";
+    return {
+      to: r.email, subject,
+      text: `Hi ${first},\n\n${body}\n\n${SITE}/dashboard`,
+      html: `<p>Hi ${esc(first)},</p><div style="white-space:pre-wrap">${esc(body)}</div><p><a href="${SITE}/dashboard">Open your dashboard</a></p>`,
+    };
+  }));
+}
+
+export async function sendPlacementEmails(rows: { email: string; full_name: string | null; team: string; mates: string[] }[]) {
+  return sendBatch(rows.map((r) => {
+    const first = r.full_name?.split(" ")[0] ?? "there";
+    const mates = r.mates.length ? r.mates.join(", ") : "your teammates";
+    return {
+      to: r.email, subject: `You're on a team: ${r.team}`,
+      text: `Hi ${first},\n\nThe organizers placed you on team "${r.team}" with ${mates}.\nOpen your team chat: ${SITE}/team\n\nIf this doesn't work for you, reply to this email.`,
+      html: `<p>Hi ${esc(first)},</p><p>The organizers placed you on team <strong>${esc(r.team)}</strong> with ${esc(mates)}.</p><p><a href="${SITE}/team">Open your team</a></p><p style="color:#5b5f68;font-size:13px">If this doesn't work for you, reply to this email.</p>`,
+    };
+  }));
+}

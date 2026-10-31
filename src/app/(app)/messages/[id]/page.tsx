@@ -17,9 +17,11 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
   const names: Record<string, string> = Object.fromEntries((people ?? []).map((p) => [p.id, p.full_name]));
   names[profile.id] = "You";
   await supabase.rpc("mark_read", { p_conversation: id });
+  const system = conv.kind === "system";
+  if (system) for (const m of msgs ?? []) names[m.sender_id] = "Organizers";
 
   const other = memberIds.find((m) => m !== profile.id);
-  const title = conv.kind === "team"
+  const title = system ? "Organizers" : conv.kind === "team"
     ? `Team chat: ${(conv.teams as unknown as { name: string } | null)?.name ?? ""}`
     : names[other ?? ""] ?? "Student";
 
@@ -29,7 +31,7 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
       <h1 className="mt-3 font-heading text-3xl font-bold">
         {conv.kind === "direct" && other ? <Link href={`/people/${other}`} className="hover:text-primary">{title}</Link> : title}
       </h1>
-      <Chat conversationId={id} me={profile.id} names={names} initial={((msgs ?? []) as Msg[]).reverse()} />
+      <Chat conversationId={id} me={profile.id} names={names} initial={((msgs ?? []) as Msg[]).reverse()} readOnly={system} fallbackName={system ? "Organizers" : "Student"} />
     </div>
   );
 }

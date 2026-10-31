@@ -65,7 +65,8 @@ export async function startCheckout() {
   const { data: p } = await supabase.from("profiles").select("paid_at").eq("id", user.id).single();
   if (p?.paid_at) redirect("/dashboard");
   const fee = currentFee();
-  const origin = (await headers()).get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "";
+  // Prefer the configured site URL; the request's own Origin header is only a fallback for local development.
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? (await headers()).get("origin") ?? "";
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     allow_promotion_codes: true, // coupons (e.g. early-bird codes) are created in the Stripe dashboard
@@ -130,6 +131,16 @@ export async function respondInvite(inviteId: string, accept: boolean) {
 export async function cancelInvite(inviteId: string) { return rpcAction("cancel_invite", { p_invite: inviteId }, "Cancelled."); }
 export async function lockTeam() { return rpcAction("lock_team", {}, "Your team is locked in."); }
 export async function leaveTeam() { return rpcAction("leave_team", {}, "You left the team."); }
+
+// ---------------------------------------------------------------- check-in
+export async function selfCheckIn(token: string): Promise<ActionResult> {
+  const { supabase } = await getUserOrRedirect();
+  if (!/^[a-f0-9]{16,64}$/i.test(token)) return { error: "That QR code is not valid. Ask an organizer for help." };
+  const { error } = await supabase.rpc("self_check_in", { p_token: token });
+  if (error) return { error: msg(error) };
+  revalidatePath("/", "layout");
+  return { ok: "Checked in." };
+}
 
 // ---------------------------------------------------------------- messages
 export async function messageStudent(otherId: string): Promise<ActionResult> {

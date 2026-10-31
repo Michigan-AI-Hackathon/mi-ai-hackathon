@@ -2,6 +2,8 @@ import Link from "next/link";
 import Avatar from "@/components/Avatar";
 import Countdown from "@/components/Countdown";
 import PayButton from "@/components/PayButton";
+import QrCode from "@/components/QrCode";
+import { siteUrl } from "@/lib/site";
 import { AvatarStack, SeatPips } from "@/components/Seats";
 import { startCheckout } from "@/app/actions";
 import { EVENT, LOCK_DEADLINE_LABEL, currentFee } from "@/lib/config";
@@ -39,6 +41,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const teamSize = members.length;
   const paid = !!profile.paid_at;
   const fee = currentFee();
+  const passUrl = paid ? `${await siteUrl()}/admin/pass/${profile.id}` : null;
   const first = profile.full_name?.split(" ")[0] ?? "there";
   const flags = [true, true, paid, !!team, !!team?.locked_at];
   const doneCount = flags.filter(Boolean).length;
@@ -114,7 +117,14 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
             <div className="mt-5"><Countdown to={EVENT.startsAt} size="md" /></div>
             <p className="mt-6 border-t border-on-hero/15 pt-4 text-sm text-on-hero/65">{EVENT.dateLabel} · {EVENT.place}</p>
           </div>
-          <div className="panel rise" style={{ "--i": 4 } as React.CSSProperties}>
+          {passUrl && (
+            <div className="panel rise text-center" style={{ "--i": 4 } as React.CSSProperties}>
+              <p className="eyebrow text-muted">Your event pass</p>
+              <div className="mx-auto mt-4 w-fit rounded-xl border border-line bg-white p-3"><QrCode value={passUrl} size={150} label="Your personal check-in QR code" /></div>
+              <p className="mt-3 text-sm text-muted">{profile.checked_in_at ? "You're checked in." : "At the event, scan the venue QR code, or show this pass at the desk."}</p>
+            </div>
+          )}
+          <div className="panel rise" style={{ "--i": 5 } as React.CSSProperties}>
             <p className="eyebrow text-muted">Jump to</p>
             <ul className="mt-3 divide-y divide-line text-[15px]">
               {[["/people", "Find teammates", "Search every school"], ["/teams", "Open teams", "Ask to join one"], ["/invites", "Invites", "Answer your invites"], ["/messages", "Messages", "Team chat and direct"]].map(([h, t, d]) => (

@@ -6,7 +6,7 @@ export type Profile = {
   id: string; email: string; full_name: string | null; school_id: number | null; year: string | null;
   study_area: string | null; skills: string[]; interests: string[]; tracks: string[]; bio: string | null;
   looking_for_team: boolean; linkedin_url: string | null; onboarded_at: string | null; paid_at: string | null;
-  is_admin: boolean; avatar_url: string | null;
+  is_admin: boolean; avatar_url: string | null; checked_in_at: string | null; signup_source: string | null;
 };
 
 // Signed-in student + their profile. Sends them to login/onboarding if needed.

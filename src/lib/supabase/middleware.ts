@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED = ["/dashboard", "/onboarding", "/people", "/teams", "/team", "/invites", "/messages"];
+const PROTECTED = ["/dashboard", "/onboarding", "/people", "/teams", "/team", "/invites", "/messages", "/admin", "/checkin"];
 
 export async function updateSession(request: NextRequest) {
   // A sign-in link that lands on any page (e.g. Supabase fell back to the Site URL)
@@ -36,7 +36,7 @@ export async function updateSession(request: NextRequest) {
   if (!user && PROTECTED.some((p) => path === p || path.startsWith(p + "/"))) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    url.searchParams.set("next", path);
+    url.searchParams.set("next", path + request.nextUrl.search); // keep ?t=… so QR scans survive signing in
     return NextResponse.redirect(url);
   }
   return response;

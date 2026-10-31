@@ -1,10 +1,10 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 export type Msg = { id: number; sender_id: string; body: string; created_at: string };
 
-export default function Chat({ conversationId, me, names, initial }: { conversationId: string; me: string; names: Record<string, string>; initial: Msg[] }) {
+export default function Chat({ conversationId, me, names, initial, readOnly = false, fallbackName = "Student" }: { conversationId: string; me: string; names: Record<string, string>; initial: Msg[]; readOnly?: boolean; fallbackName?: string }) {
   const supabase = useMemo(() => createClient(), []);
   const [msgs, setMsgs] = useState<Msg[]>(initial);
   const [draft, setDraft] = useState("");
@@ -14,14 +14,21 @@ export default function Chat({ conversationId, me, names, initial }: { conversat
 
   const add = (m: Msg) => setMsgs((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
 
+  // Opening a conversation marks it read. Tell the nav so its badge clears right away.
+  const markRead = useCallback(
+    () => supabase.rpc("mark_read", { p_conversation: conversationId }).then(() => window.dispatchEvent(new Event("unread-changed"))),
+    [supabase, conversationId],
+  );
+  useEffect(() => { markRead(); }, [markRead]);
+
   useEffect(() => {
     const channel = supabase
       .channel(`conv-${conversationId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${conversationId}` },
-        (payload) => { add(payload.new as Msg); supabase.rpc("mark_read", { p_conversation: conversationId }); })
+        (payload) => { add(payload.new as Msg); markRead(); })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [supabase, conversationId]);
+  }, [supabase, conversationId, markRead]);
 
   useEffect(() => { bottom.current?.scrollIntoView({ block: "end" }); }, [msgs.length]);
 
@@ -50,7 +57,7 @@ export default function Chat({ conversationId, me, names, initial }: { conversat
             const mine = m.sender_id === me;
             return (
               <li key={m.id} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
-                <span className="mb-1 text-xs text-muted">{names[m.sender_id] ?? "Student"}, {fmt(m.created_at)}</span>
+                <span className="mb-1 text-xs text-muted">{names[m.sender_id] ?? fallbackName}, {fmt(m.created_at)}</span>
                 <p className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed ${mine ? "rounded-br-md bg-ink text-card" : "rounded-bl-md bg-card text-ink ring-1 ring-line"}`}>{m.body}</p>
               </li>
             );
@@ -58,15 +65,15 @@ export default function Chat({ conversationId, me, names, initial }: { conversat
         </ul>
         <div ref={bottom} />
       </div>
-      <form onSubmit={send} className="mt-3 flex gap-2">
+      {readOnly ? <p className="mt-3 text-sm text-muted">This is a message from the organizers. You can&apos;t reply here. Email aihackathonumich@gmail.com with questions.</p> : <form onSubmit={send} className="mt-3 flex gap-2">
         <label htmlFor="msg" className="sr-only">Message</label>
         <textarea id="msg" rows={2} maxLength={2000} className="input resize-none" placeholder="Write a message"
           value={draft} onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); (e.currentTarget.form as HTMLFormElement).requestSubmit(); } }} />
         <button className="btn-primary self-end" disabled={sending || !draft.trim()}>{sending ? "Sending…" : "Send"}</button>
-      </form>
+      </form>}
       {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
-      <p className="hint">Enter sends. Shift + Enter adds a new line.</p>
+      {!readOnly && <p className="hint">Enter sends. Shift + Enter adds a new line.</p>}
     </div>
   );
 }

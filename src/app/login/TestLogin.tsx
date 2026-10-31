@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { claimSignupSource } from "@/lib/claim-source";
 
 // TEST MODE ONLY: password sign-in with no email. Shown only when
 // NEXT_PUBLIC_ENABLE_TEST_LOGIN=true in Vercel. Turn it off before launch.
@@ -28,6 +29,7 @@ export default function TestLogin() {
     }
     setBusy(false);
     if (err) return setError(err.message);
+    await claimSignupSource(supabase);
     router.replace("/dashboard");
     router.refresh();
   }

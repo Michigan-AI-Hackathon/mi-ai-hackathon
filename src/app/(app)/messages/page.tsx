@@ -19,10 +19,10 @@ export default async function MessagesPage() {
           {convs.map((c) => (
             <li key={c.conversation_id}>
               <Link href={`/messages/${c.conversation_id}`} className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-paper">
-                <Avatar name={c.title} size={44} />
+                {c.kind === "system" ? <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-ink text-xs font-bold text-card">HQ</span> : <Avatar name={c.title} size={44} />}
                 <div className="min-w-0 flex-1">
                   <p className={`truncate font-heading text-lg ${c.unread ? "font-bold" : "font-semibold"}`}>
-                    {c.kind === "team" ? `Team chat: ${c.title}` : c.title ?? "Student"}
+                    {c.kind === "team" ? `Team chat: ${c.title}` : c.kind === "system" ? "Organizers" : c.title ?? "Student"}
                   </p>
                   <p className={`truncate text-[15px] ${c.unread ? "text-ink" : "text-muted"}`}>{c.last_body ?? "No messages yet"}</p>
                 </div>

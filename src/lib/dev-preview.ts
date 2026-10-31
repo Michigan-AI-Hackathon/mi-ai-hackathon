@@ -4,13 +4,13 @@ import { cookies } from "next/headers";
 // DEV ONLY. In `next dev`, a cookie turns the whole app into a clickable preview with fake
 // students, teams and messages, so every page can be designed without signing in.
 // Does nothing in production builds (NODE_ENV is "production" there).
-export type Scenario = "new" | "unpaid" | "solo" | "team";
+export type Scenario = "new" | "unpaid" | "solo" | "team" | "admin";
 export const isDev = process.env.NODE_ENV === "development";
 
 export async function devScenario(): Promise<Scenario | null> {
   if (!isDev) return null;
   const v = (await cookies()).get("dev_preview")?.value;
-  return v === "new" || v === "unpaid" || v === "solo" || v === "team" ? v : null;
+  return v === "new" || v === "unpaid" || v === "solo" || v === "team" || v === "admin" ? v : null;
 }
 
 const ME = "00000000-0000-4000-8000-000000000001";
@@ -35,7 +35,9 @@ const people = [
   ["Ravi Patel", 64, "Kettering University", "kettering", "Computer engineering", ["Backend", "Hardware"], ["Industry 4.0"], null, T4, "Gearbox"],
 ] as const;
 
-function build(scenario: Scenario) {
+function build(requested: Scenario) {
+  const isAdmin = requested === "admin";
+  const scenario: Scenario = isAdmin ? "team" : requested; // organizers see the "on a team" student side
   const meTeam = scenario === "team" ? T1 : null;
   const dir = [
     { id: ME, full_name: "Alex Rivera", school_id: 1, school_name: "University of Michigan – Ann Arbor", school_group: "school-1", study_area: "Information science",
@@ -65,22 +67,35 @@ function build(scenario: Scenario) {
        { id: "i3", kind: "invite", team_id: T4, student_id: ME, sent_by: dir[11].id, status: "declined", expires_at: iso(-30), created_at: iso(-80), teams: { name: "Gearbox", track: "Industry 4.0", needs: null } }];
   const profile = { id: ME, email: "alex.rivera@umich.edu", full_name: "Alex Rivera", school_id: 1, year: "Third year", study_area: "Information science",
     skills: ["Frontend", "Product management"], interests: ["Startups"], tracks: ["FinTech"], bio: dir[0].bio, looking_for_team: true, linkedin_url: null,
-    onboarded_at: scenario === "new" ? null : iso(-200), paid_at: scenario === "new" || scenario === "unpaid" ? null : iso(-150), is_admin: false, avatar_url: scenario === "new" ? null : "preset-engineer" };
+    onboarded_at: scenario === "new" ? null : iso(-200), paid_at: scenario === "new" || scenario === "unpaid" ? null : iso(-150), is_admin: isAdmin, avatar_url: scenario === "new" ? null : "preset-engineer" };
   if (scenario === "new") Object.assign(profile, { full_name: null, year: null, study_area: null, skills: [], interests: [], tracks: [], bio: null, school_id: null });
   const convs = [
     { conversation_id: "c1", kind: scenario === "team" ? "team" : "direct", title: scenario === "team" ? "Maize Mind" : "Devon Carter", last_body: "Sounds good, I can sketch the onboarding flow tonight.", last_at: iso(-1), unread: 2 },
     { conversation_id: "c2", kind: "direct", title: "Priya Shah", last_body: "Are you free to chat about the FinTech idea?", last_at: iso(-26), unread: 0 },
+    { conversation_id: "c3", kind: "system", title: "Organizers", last_body: "Doors open at 8\n\nBring your laptop and charger.", last_at: iso(-0.5), unread: 1 },
   ];
   const messages = [
+    { id: 9, conversation_id: "c3", sender_id: dir[1].id, body: "Doors open at 8\n\nBring your laptop and charger. Breakfast is served until 9.", created_at: iso(-0.5) },
     { id: 1, conversation_id: "c1", sender_id: dir[1].id, body: "Hey team, I was thinking we build a budgeting copilot for students.", created_at: iso(-5) },
     { id: 2, conversation_id: "c1", sender_id: ME, body: "Love it. I can own the frontend and the pitch.", created_at: iso(-4.5) },
     { id: 3, conversation_id: "c1", sender_id: dir[2].id, body: "Sounds good, I can sketch the onboarding flow tonight.", created_at: iso(-1) },
   ];
+  const others = dir.filter((d) => d.id !== ME).map((d, i) => ({
+    id: d.id, email: `${d.full_name.toLowerCase().replace(/[^a-z]+/g, ".")}@${["msu", "wayne", "calvin", "gvsu", "umich", "mtu", "ltu", "oakland", "emu", "hope", "cmu", "kettering"][i % 12]}.edu`,
+    full_name: d.full_name, year: ["First year", "Second year", "Third year", "Fourth year"][i % 4], study_area: d.study_area, school_id: d.school_id, schools: { name: d.school_name },
+    tracks: d.tracks, skills: d.skills, avatar_url: d.avatar_url, onboarded_at: iso(-100 - i), paid_at: i % 5 === 4 ? null : iso(-80 - i), checked_in_at: i % 4 === 0 ? iso(-1) : null, created_at: iso(-24 * (i + 1)), is_admin: false,
+  }));
+  const audit = [
+    { id: 3, action: "auto_fill", details: { students_placed: 8, groups: 2 }, created_at: iso(-2), profiles: { full_name: "Alex Rivera", email: "alex.rivera@umich.edu" } },
+    { id: 2, action: "add_to_team", details: { student: "…", team: "…", force: false }, created_at: iso(-6), profiles: { full_name: "Alex Rivera", email: "alex.rivera@umich.edu" } },
+    { id: 1, action: "broadcast", details: { audience: "unpaid", recipients: 4, subject: "Registration closes Friday" }, created_at: iso(-30), profiles: { full_name: "Alex Rivera", email: "alex.rivera@umich.edu" } },
+  ];
   return {
-    profiles: [profile], student_directory: dir, team_members: members.filter((m) => m.user_id === ME || live.includes(m.team_id!)).concat([]),
+    audit_log: audit,
+    profiles: isAdmin ? [{ ...profile, schools: { name: "University of Michigan – Ann Arbor" }, checked_in_at: null, created_at: iso(-300) }, ...others] : [profile], student_directory: dir, team_members: members.filter((m) => m.user_id === ME || live.includes(m.team_id!)).concat([]),
     teams, invites, app_settings: [{ lock_deadline: null, require_payment: true }],
-    conversations: [{ id: "c1", kind: scenario === "team" ? "team" : "direct", team_id: meTeam, teams: { name: "Maize Mind" } }],
-    conversation_members: [{ conversation_id: "c1", user_id: ME }, { conversation_id: "c1", user_id: dir[1].id }],
+    conversations: [{ id: "c1", kind: scenario === "team" ? "team" : "direct", team_id: meTeam, teams: { name: "Maize Mind" } }, { id: "c3", kind: "system", team_id: null, teams: null }],
+    conversation_members: [{ conversation_id: "c1", user_id: ME }, { conversation_id: "c1", user_id: dir[1].id }, { conversation_id: "c3", user_id: ME }],
     messages, schools: [{ id: 1, name: "University of Michigan – Ann Arbor" }, { id: 2, name: "University of Michigan – Dearborn" }, { id: 3, name: "University of Michigan – Flint" }],
     _convs: convs, _memberRows: memberRows,
   };
@@ -122,6 +137,18 @@ export function createMockClient(scenario: Scenario) {
     my_conversations: db._convs,
     team_lock_problem: scenario === "team" ? "You need 4 people to lock in. Your team has 3." : null,
     schools_for_email: db.schools,
+    admin_checkin_config: { open: true, token: "0123456789abcdef0123456789abcdef" },
+    admin_source_stats: { direct: 61, sources: [
+      { id: "s1", slug: "ross-welcome-week-table-a1b2c", name: "Ross Welcome Week table", event_date: "2026-09-02", active: true, signups: 47, finished: 39, paid: 31 },
+      { id: "s2", slug: "engineering-info-session-9f3d1", name: "Engineering info session", event_date: "2026-10-08", active: true, signups: 22, finished: 18, paid: 12 },
+      { id: "s3", slug: "msu-club-fair-77c0e", name: "MSU club fair", event_date: "2026-10-21", active: false, signups: 18, finished: 11, paid: 6 },
+    ] },
+    source_info: { name: "Ross Welcome Week table", event_date: "2026-09-02" },
+    admin_stats: { signed_up: 148, profiles_done: 121, paid: 96, revenue_cents: 192000, teams: 18, locked_teams: 6, on_team: 62, solo_paid: 34, checked_in: 12,
+      team_sizes: { "4": 9, "3": 5, "2": 3, "1": 1 },
+      by_school: [{ name: "University of Michigan – Ann Arbor", n: 34 }, { name: "Michigan State University", n: 27 }, { name: "Wayne State University", n: 15 }, { name: "Grand Valley State University", n: 9 }, { name: "Michigan Technological University", n: 7 }, { name: "Oakland University", n: 6 }],
+      by_track: [{ name: "FinTech", n: 52 }, { name: "HealthTech", n: 44 }, { name: "SportsTech", n: 31 }, { name: "Industry 4.0", n: 27 }],
+      signups_by_day: Array.from({ length: 21 }, (_, i) => ({ day: `2026-10-${String(i + 10).padStart(2, "0")}`, n: Math.round(3 + 9 * Math.abs(Math.sin(i / 3)) + i / 4) })) },
     mark_read: null,
   };
   return {
