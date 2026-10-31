@@ -4,13 +4,13 @@ import { cookies } from "next/headers";
 // DEV ONLY. In `next dev`, a cookie turns the whole app into a clickable preview with fake
 // students, teams and messages, so every page can be designed without signing in.
 // Does nothing in production builds (NODE_ENV is "production" there).
-export type Scenario = "unpaid" | "solo" | "team";
+export type Scenario = "new" | "unpaid" | "solo" | "team";
 export const isDev = process.env.NODE_ENV === "development";
 
 export async function devScenario(): Promise<Scenario | null> {
   if (!isDev) return null;
   const v = (await cookies()).get("dev_preview")?.value;
-  return v === "unpaid" || v === "solo" || v === "team" ? v : null;
+  return v === "new" || v === "unpaid" || v === "solo" || v === "team" ? v : null;
 }
 
 const ME = "00000000-0000-4000-8000-000000000001";
@@ -21,17 +21,17 @@ const T4 = "10000000-0000-4000-8000-000000000004";
 const iso = (h: number) => new Date(Date.now() + h * 3_600_000).toISOString();
 
 const people = [
-  ["Priya Shah", 4, "Michigan State University", "msu", "Computer science", ["Machine learning", "Backend"], ["FinTech"], "preset-2", T1, "Maize Mind"],
+  ["Priya Shah", 4, "Michigan State University", "msu", "Computer science", ["Machine learning", "Backend"], ["FinTech"], "preset-business", T1, "Maize Mind"],
   ["Marcus Bell", 5, "Wayne State University", "wayne", "Finance", ["Finance", "Pitching"], ["FinTech", "Industry 4.0"], null, T1, "Maize Mind"],
-  ["Elena Rossi", 53, "Calvin University", "calvin", "Nursing", ["Healthcare", "Research"], ["HealthTech"], "preset-3", T2, "Pulse Labs"],
+  ["Elena Rossi", 53, "Calvin University", "calvin", "Nursing", ["Healthcare", "Research"], ["HealthTech"], "preset-designer", T2, "Pulse Labs"],
   ["Devon Carter", 9, "Grand Valley State University", "gvsu", "Industrial design", ["UI/UX design", "Hardware"], ["Industry 4.0"], null, T2, "Pulse Labs"],
-  ["Hana Kim", 2, "University of Michigan – Dearborn", "umd", "Software engineering", ["Mobile", "Frontend"], ["SportsTech"], "preset-1", T3, "Sideline"],
+  ["Hana Kim", 2, "University of Michigan – Dearborn", "umd", "Software engineering", ["Mobile", "Frontend"], ["SportsTech"], "preset-engineer", T3, "Sideline"],
   ["Jordan Okafor", 11, "Michigan Technological University", "mtu", "Mechanical engineering", ["Hardware", "Data analysis"], ["Industry 4.0", "SportsTech"], null, null, null],
-  ["Sofia Alvarez", 66, "Lawrence Technological University", "ltu", "Architecture", ["UI/UX design", "Writing"], ["HealthTech"], "preset-4", null, null],
+  ["Sofia Alvarez", 66, "Lawrence Technological University", "ltu", "Architecture", ["UI/UX design", "Writing"], ["HealthTech"], "preset-health", null, null],
   ["Tyler Nguyen", 10, "Oakland University", "oakland", "Marketing", ["Marketing", "Pitching"], ["SportsTech", "FinTech"], null, null, null],
-  ["Amara Johnson", 7, "Eastern Michigan University", "emu", "Public health", ["Healthcare", "Research"], ["HealthTech"], "preset-2", null, null],
+  ["Amara Johnson", 7, "Eastern Michigan University", "emu", "Public health", ["Healthcare", "Research"], ["HealthTech"], "preset-business", null, null],
   ["Noah Becker", 62, "Hope College", "hope", "Economics", ["Finance", "Data analysis"], ["FinTech"], null, null, null],
-  ["Zoe Martin", 6, "Central Michigan University", "cmu", "Cognitive science", ["Machine learning", "Research"], ["HealthTech", "FinTech"], "preset-3", null, null],
+  ["Zoe Martin", 6, "Central Michigan University", "cmu", "Cognitive science", ["Machine learning", "Research"], ["HealthTech", "FinTech"], "preset-designer", null, null],
   ["Ravi Patel", 64, "Kettering University", "kettering", "Computer engineering", ["Backend", "Hardware"], ["Industry 4.0"], null, T4, "Gearbox"],
 ] as const;
 
@@ -40,7 +40,7 @@ function build(scenario: Scenario) {
   const dir = [
     { id: ME, full_name: "Alex Rivera", school_id: 1, school_name: "University of Michigan – Ann Arbor", school_group: "school-1", study_area: "Information science",
       skills: ["Frontend", "Product management"], interests: ["Startups"], tracks: ["FinTech"], bio: "Looking for someone who knows finance and a strong backend engineer.",
-      looking_for_team: true, linkedin_url: null, team_id: meTeam, team_name: meTeam ? "Maize Mind" : null, avatar_url: "preset-1" },
+      looking_for_team: true, linkedin_url: null, team_id: meTeam, team_name: meTeam ? "Maize Mind" : null, avatar_url: "preset-engineer" },
     ...people.map((p, i) => ({
       id: `20000000-0000-4000-8000-0000000000${String(i + 10)}`, full_name: p[0], school_id: p[1], school_name: p[2], school_group: `school-${p[1]}`,
       study_area: p[4], skills: [...p[5]], interests: ["Startups"], tracks: [...p[6]],
@@ -65,7 +65,8 @@ function build(scenario: Scenario) {
        { id: "i3", kind: "invite", team_id: T4, student_id: ME, sent_by: dir[11].id, status: "declined", expires_at: iso(-30), created_at: iso(-80), teams: { name: "Gearbox", track: "Industry 4.0", needs: null } }];
   const profile = { id: ME, email: "alex.rivera@umich.edu", full_name: "Alex Rivera", school_id: 1, year: "Third year", study_area: "Information science",
     skills: ["Frontend", "Product management"], interests: ["Startups"], tracks: ["FinTech"], bio: dir[0].bio, looking_for_team: true, linkedin_url: null,
-    onboarded_at: iso(-200), paid_at: scenario === "unpaid" ? null : iso(-150), is_admin: false, avatar_url: "preset-1" };
+    onboarded_at: scenario === "new" ? null : iso(-200), paid_at: scenario === "new" || scenario === "unpaid" ? null : iso(-150), is_admin: false, avatar_url: scenario === "new" ? null : "preset-engineer" };
+  if (scenario === "new") Object.assign(profile, { full_name: null, year: null, study_area: null, skills: [], interests: [], tracks: [], bio: null, school_id: null });
   const convs = [
     { conversation_id: "c1", kind: scenario === "team" ? "team" : "direct", title: scenario === "team" ? "Maize Mind" : "Devon Carter", last_body: "Sounds good, I can sketch the onboarding flow tonight.", last_at: iso(-1), unread: 2 },
     { conversation_id: "c2", kind: "direct", title: "Priya Shah", last_body: "Are you free to chat about the FinTech idea?", last_at: iso(-26), unread: 0 },
@@ -80,7 +81,7 @@ function build(scenario: Scenario) {
     teams, invites, app_settings: [{ lock_deadline: null, require_payment: true }],
     conversations: [{ id: "c1", kind: scenario === "team" ? "team" : "direct", team_id: meTeam, teams: { name: "Maize Mind" } }],
     conversation_members: [{ conversation_id: "c1", user_id: ME }, { conversation_id: "c1", user_id: dir[1].id }],
-    messages, schools: [{ id: 1, name: "University of Michigan – Ann Arbor" }, { id: 2, name: "University of Michigan – Dearborn" }, { id: 4, name: "Michigan State University" }, { id: 5, name: "Wayne State University" }],
+    messages, schools: [{ id: 1, name: "University of Michigan – Ann Arbor" }, { id: 2, name: "University of Michigan – Dearborn" }, { id: 3, name: "University of Michigan – Flint" }],
     _convs: convs, _memberRows: memberRows,
   };
 }

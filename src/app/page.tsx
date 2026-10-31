@@ -4,6 +4,7 @@ import Faq, { type FaqItem } from "@/components/Faq";
 import HostMark from "@/components/HostMark";
 import Logo from "@/components/Logo";
 import Reveal from "@/components/Reveal";
+import ScrollHeader from "@/components/ScrollHeader";
 import SchoolBadge, { hasLogo } from "@/components/SchoolBadge";
 import { EVENT, LOCK_DEADLINE_LABEL, TRACKS, currentFee } from "@/lib/config";
 import { isDev } from "@/lib/dev-preview";
@@ -52,7 +53,7 @@ export default async function Home() {
     { when: "Open now", title: "Registration", body: `Create your account, finish your profile and pay the ${fee.label} fee.`, state: "open" },
     { when: LOCK_DEADLINE_LABEL, title: "Team lock-in deadline", body: "Teams locked by this date are guaranteed a spot. We'll announce the date here and by email.", state: "tba" },
     { when: "Before the event", title: "Solo matching", body: "Students who still have no team are placed on a team by the organizers.", state: "tba" },
-    { when: EVENT.dateLabel, title: "The hackathon", body: `Two days of building. ${EVENT.place}.`, state: "event" },
+    { when: EVENT.dateLabel, title: "The hackathon", body: `24 hours of building. ${EVENT.place}.`, state: "event" },
   ];
 
   const faqs: FaqItem[] = [
@@ -69,13 +70,8 @@ export default async function Home() {
 
   return (
     <div>
-      <div className="bg-hero text-on-hero">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2 text-[13px] sm:px-6">
-          <span>An official <strong className="font-semibold">Business+Tech at Michigan Ross</strong> event</span>
-          <span className="hidden text-on-hero/60 sm:inline">{EVENT.dateLabel} · Detroit</span>
-        </div>
-      </div>
-      <header className="sticky top-0 z-30 border-b border-line bg-paper/85 backdrop-blur-md">
+      {/* Full menu: slides in after you scroll past the hero */}
+      <ScrollHeader>
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
           <Logo />
           <nav className="flex items-center gap-1 sm:gap-6">
@@ -85,51 +81,52 @@ export default async function Home() {
               <a href="#register" className="link-draw hover:text-ink">Register</a>
               <a href="#faq" className="link-draw hover:text-ink">FAQ</a>
             </div>
-            {isDev && (
-              <a href="/dev/preview?as=team" className="btn whitespace-nowrap border border-dashed border-ink/40 text-ink hover:border-ink">Dev: preview app</a>
-            )}
             {user ? (
               <Link href="/dashboard" className="btn-primary whitespace-nowrap">Dashboard</Link>
             ) : (
-              <>
-                <Link href="/login" className="btn whitespace-nowrap text-ink">Sign in</Link>
-                <Link href="/login" className="btn-primary hidden whitespace-nowrap sm:inline-flex">Create your account</Link>
-              </>
+              <Link href="/login" className="btn-primary whitespace-nowrap">Create your account</Link>
             )}
           </nav>
         </div>
-      </header>
+      </ScrollHeader>
 
       <main>
-        <section className="mx-auto max-w-6xl px-4 pb-14 pt-12 sm:px-6 sm:pt-20">
-          <p className="rise eyebrow text-primary" style={{ "--i": 0 } as React.CSSProperties}>{EVENT.dateLabel} · Detroit, Michigan</p>
-          <h1 className="rise mt-5 max-w-5xl font-heading text-[2.9rem] font-bold leading-[0.98] sm:text-7xl lg:text-[5.5rem]" style={{ "--i": 1 } as React.CSSProperties}>
-            Build with students from <span className="relative whitespace-nowrap">across Michigan.
-              <span aria-hidden className="absolute -bottom-1 left-0 h-[6px] w-full origin-left bg-accent [animation:draw_900ms_var(--ease-out)_700ms_both]" />
-            </span>
-          </h1>
-          <p className="rise mt-7 max-w-2xl text-lg leading-relaxed text-muted" style={{ "--i": 2 } as React.CSSProperties}>
-            One weekend, four tracks, and about 500 students from colleges and universities statewide.
-            You&apos;ll build an AI product on a team of four, with people from at least three schools.
-          </p>
-          <div className="rise mt-8 flex flex-wrap gap-3" style={{ "--i": 3 } as React.CSSProperties}>
-            <Link href={user ? "/dashboard" : "/login"} className="btn-primary px-6 py-3.5 text-[15px]">
-              {user ? "Go to your dashboard" : "Create your account"} <span aria-hidden>→</span>
-            </Link>
-            <a href="#faq" className="btn-secondary px-6 py-3.5 text-[15px]">Read the FAQ</a>
+        {/* Hero: one idea, then the schools */}
+        <section className="flex min-h-[100svh] flex-col">
+          <div className="rise mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-6 sm:px-6" style={{ "--i": 0 } as React.CSSProperties}>
+            <Logo />
+            <div className="flex items-center gap-2">
+              {isDev && <a href="/dev/preview?as=team" className="btn whitespace-nowrap border border-dashed border-ink/40 text-ink hover:border-ink">Dev: preview app</a>}
+              {user ? (
+                <Link href="/dashboard" className="btn-primary">Dashboard</Link>
+              ) : (
+                <Link href="/login" className="btn whitespace-nowrap text-ink">Sign in</Link>
+              )}
+            </div>
           </div>
-        </section>
 
-        {/* Schools banner */}
-        <section aria-label="Schools represented" className="rise" style={{ "--i": 4 } as React.CSSProperties}>
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-8 gap-y-3 px-4 sm:px-6">
-            <p className="eyebrow text-muted">Open to students at every Michigan college and university</p>
-            <p className="flex items-center gap-3 text-sm text-muted">Hosted by <HostMark /></p>
+          <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-4 pb-10 sm:px-6">
+            <p className="rise eyebrow text-primary" style={{ "--i": 1 } as React.CSSProperties}>{EVENT.dateLabel} · Detroit</p>
+            <h1 className="rise mt-5 font-heading text-[2.9rem] font-bold leading-[0.95] sm:text-6xl lg:text-[6.25rem]" style={{ "--i": 2 } as React.CSSProperties}>
+              Michigan&apos;s<br /><span className="hl whitespace-nowrap">24-hour</span> hackathon.
+            </h1>
+            <div className="rise mt-10 flex flex-wrap items-center gap-4" style={{ "--i": 3 } as React.CSSProperties}>
+              <Link href={user ? "/dashboard" : "/login"} className="btn-primary px-7 py-4 text-base">
+                {user ? "Go to your dashboard" : "Create your account"} <span aria-hidden>→</span>
+              </Link>
+              <p className="text-[15px] text-muted">For college students across the state.</p>
+            </div>
+            <div className="rise mt-12 flex items-center gap-4 text-sm text-muted" style={{ "--i": 4 } as React.CSSProperties}>
+              Hosted by <HostMark size={34} />
+            </div>
           </div>
-          <div className="marquee mt-5 overflow-hidden border-y border-line bg-card py-6 [mask-image:linear-gradient(90deg,transparent,#000_3%,#000_92%,transparent)]">
+
+          {/* Schools: logos glide in one by one, then keep moving */}
+          <div aria-label="Schools represented" className="marquee overflow-hidden border-y border-line bg-card/70 py-7 [mask-image:linear-gradient(90deg,transparent,#000_3%,#000_92%,transparent)]">
             <div className="marquee-track flex w-max items-center gap-14 pl-[max(1rem,calc((100vw-72rem)/2+1.5rem))]">
               {[...SCHOOLS, ...SCHOOLS].map((s, i) => (
-                <div key={i} className="flex h-12 items-center gap-3 whitespace-nowrap opacity-80 grayscale transition duration-300 hover:opacity-100 hover:grayscale-0" aria-hidden={i >= SCHOOLS.length}>
+                <div key={i} className="rise flex h-12 items-center gap-3 whitespace-nowrap opacity-80 grayscale transition duration-300 hover:opacity-100 hover:grayscale-0"
+                  style={{ "--i": 6 + Math.min(i, 9) * 0.7 } as React.CSSProperties} aria-hidden={i >= SCHOOLS.length}>
                   <SchoolBadge slug={s.slug} abbr={s.abbr} name={s.name} size={44} />
                   {!hasLogo(s.slug) && <span className="font-heading text-[15px] font-semibold text-ink/80">{s.name}</span>}
                 </div>
@@ -171,7 +168,7 @@ export default async function Home() {
               <ul className="mt-4 divide-y divide-line border-y border-line" aria-label="Example team of four">
                 {roster.map((m, i) => (
                   <li key={m.skill} className="group flex items-center gap-4 py-4 transition-[padding] duration-300 [transition-timing-function:var(--ease-out)] hover:pl-2">
-                    <span className="flex w-32 shrink-0 justify-start sm:w-40"><SchoolBadge slug={m.slug} abbr={m.abbr} name={m.school} size={34} /></span>
+                    <span className="flex w-24 shrink-0 justify-start sm:w-28"><SchoolBadge slug={m.slug} abbr={m.abbr} name={m.school} size={22} maxW={100} /></span>
                     <span className="min-w-0 flex-1">
                       <span className="block font-heading text-xl font-semibold">{m.skill}</span>
                       <span className="block text-[15px] text-muted">{m.school}</span>

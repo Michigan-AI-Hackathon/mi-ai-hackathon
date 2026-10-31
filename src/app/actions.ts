@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { stripe } from "@/lib/stripe";
-import { AVATAR_PRESETS, EVENT, TRACKS, YEARS, currentFee } from "@/lib/config";
+import { AVATAR_KEYS, EVENT, TRACKS, YEARS, currentFee } from "@/lib/config";
 
 export type ActionResult = { error?: string; ok?: string } | null;
 
@@ -35,7 +35,7 @@ export async function saveProfile(_prev: ActionResult, form: FormData): Promise<
   if (!study_area) return { error: "Add what you study." };
   if (!tracks.length) return { error: "Pick at least one track." };
   const ownFolder = `/storage/v1/object/public/avatars/${user.id}/`;
-  if (avatar && !(AVATAR_PRESETS as readonly string[]).includes(avatar)
+  if (avatar && !AVATAR_KEYS.includes(avatar)
       && !(avatar.startsWith("https://") && avatar.includes(ownFolder))) return { error: "That picture isn't valid. Pick another." };
   if (linkedin && !/^https?:\/\/(www\.)?linkedin\.com\//i.test(linkedin)) return { error: "LinkedIn links start with https://linkedin.com/" };
 

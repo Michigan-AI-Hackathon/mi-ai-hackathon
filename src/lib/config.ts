@@ -19,12 +19,27 @@ export function currentFee(now = new Date()) {
   return { cents: EVENT.feeCents, label: EVENT.feeLabel, earlyBird: false };
 }
 
-export const AVATAR_PRESETS = ["preset-1", "preset-2", "preset-3", "preset-4"] as const;
+// Default pictures, one per kind of builder. Stored on the profile as "preset-<key>".
+export const AVATAR_PRESETS = [
+  { key: "preset-engineer", label: "Engineer" },
+  { key: "preset-business", label: "Business" },
+  { key: "preset-designer", label: "Designer" },
+  { key: "preset-health", label: "Health" },
+  { key: "preset-data", label: "Data & AI" },
+  { key: "preset-hardware", label: "Hardware" },
+  { key: "preset-founder", label: "Founder" },
+  { key: "preset-researcher", label: "Researcher" },
+] as const;
+export const AVATAR_KEYS: string[] = AVATAR_PRESETS.map((p) => p.key);
+
+// Older profiles used preset-1..4.
+const LEGACY: Record<string, string> = { "preset-1": "engineer", "preset-2": "business", "preset-3": "designer", "preset-4": "health" };
 
 // avatar_url is either a preset key or the full URL of an uploaded image.
 export function avatarSrc(v: string | null | undefined) {
   if (!v) return null;
-  return (AVATAR_PRESETS as readonly string[]).includes(v) ? `/avatars/${v}.svg` : v;
+  if (v.startsWith("preset-")) return `/avatars/${LEGACY[v] ?? v.slice(7)}.svg`;
+  return v;
 }
 
 // Shown as placeholders until organizers confirm.

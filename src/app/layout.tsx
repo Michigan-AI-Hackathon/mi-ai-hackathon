@@ -6,7 +6,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Michigan AI Hackathon",
-  description: "Build with students from colleges across Michigan. Find teammates, form a team, and get ready for Detroit.",
+  description: "A 24-hour AI hackathon for Michigan college students. Find teammates from other schools, form a team, and build in Detroit.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

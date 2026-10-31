@@ -21,7 +21,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <div className="bg-ink text-card">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-5 gap-y-1 px-4 py-2 text-[13px] sm:px-6">
             <span className="font-semibold">Dev preview · fake data, actions are off</span>
-            {([["unpaid", "Not paid"], ["solo", "Paid, no team"], ["team", "On a team"]] as const).map(([k, l]) => (
+            {([["new", "New signup"], ["unpaid", "Not paid"], ["solo", "Paid, no team"], ["team", "On a team"]] as const).map(([k, l]) => (
               <a key={k} href={`/dev/preview?as=${k}`} className={`link-draw ${dev === k ? "font-semibold text-accent" : "text-card/70 hover:text-card"}`}>{l}</a>
             ))}
             <a href="/dev/exit" className="ml-auto text-card/70 hover:text-card">Exit preview</a>

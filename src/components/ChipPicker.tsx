@@ -2,10 +2,11 @@
 import { useState } from "react";
 
 // Pick from suggestions or type your own. Submits as repeated hidden inputs named `name`.
-export default function ChipPicker({ name, suggestions, initial = [], max = 8, placeholder }: {
-  name: string; suggestions: readonly string[]; initial?: string[]; max?: number; placeholder?: string;
+export default function ChipPicker({ name, suggestions, initial = [], max = 8, placeholder, onChange }: {
+  name: string; suggestions: readonly string[]; initial?: string[]; max?: number; placeholder?: string; onChange?: (v: string[]) => void;
 }) {
-  const [selected, setSelected] = useState<string[]>(initial);
+  const [selected, setSelectedRaw] = useState<string[]>(initial);
+  const setSelected = (v: string[] | ((s: string[]) => string[])) => setSelectedRaw((s) => { const n = typeof v === "function" ? v(s) : v; onChange?.(n); return n; });
   const [draft, setDraft] = useState("");
   const options = Array.from(new Set([...suggestions, ...selected]));
   const toggle = (v: string) =>
@@ -22,7 +23,7 @@ export default function ChipPicker({ name, suggestions, initial = [], max = 8, p
           const on = selected.includes(o);
           return (
             <button key={o} type="button" aria-pressed={on} onClick={() => toggle(o)}
-              className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${on ? "border-primary bg-primary text-on-primary" : "border-line bg-card text-ink hover:border-primary"}`}>
+              className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${on ? "border-ink bg-ink text-card" : "border-line bg-card text-ink hover:border-ink"}`}>
               {o}
             </button>
           );
