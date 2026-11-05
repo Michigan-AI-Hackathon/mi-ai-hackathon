@@ -1,10 +1,11 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 export type Msg = { id: number; sender_id: string; body: string; created_at: string };
 
-export default function Chat({ conversationId, me, names, initial, readOnly = false, fallbackName = "Student" }: { conversationId: string; me: string; names: Record<string, string>; initial: Msg[]; readOnly?: boolean; fallbackName?: string }) {
+export default function Chat({ conversationId, me, names, initial, readOnly = false, locked = false, fallbackName = "Student" }: { conversationId: string; me: string; names: Record<string, string>; initial: Msg[]; readOnly?: boolean; locked?: boolean; fallbackName?: string }) {
   const supabase = useMemo(() => createClient(), []);
   const [msgs, setMsgs] = useState<Msg[]>(initial);
   const [draft, setDraft] = useState("");
@@ -49,31 +50,32 @@ export default function Chat({ conversationId, me, names, initial, readOnly = fa
   const fmt = (iso: string) => new Date(iso).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
   return (
-    <div className="mt-6 flex flex-col">
-      <div className="panel h-[55vh] overflow-y-auto" aria-live="polite" aria-label="Messages">
-        {msgs.length === 0 && <p className="text-[15px] text-muted">No messages yet. Say hi and mention what you&apos;d like to build.</p>}
-        <ul className="space-y-4">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex-1 overflow-y-auto p-4" aria-live="polite" aria-label="Messages">
+        <ul className="space-y-2">
           {msgs.map((m) => {
             const mine = m.sender_id === me;
             return (
               <li key={m.id} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
-                <span className="mb-1 text-xs text-muted">{names[m.sender_id] ?? fallbackName}, {fmt(m.created_at)}</span>
-                <p className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed ${mine ? "rounded-br-md bg-ink text-card" : "rounded-bl-md bg-card text-ink ring-1 ring-line"}`}>{m.body}</p>
+                {!mine && <span className="mb-0.5 text-xs text-muted">{names[m.sender_id] ?? fallbackName}</span>}
+                <p title={fmt(m.created_at)} className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-[15px] ${mine ? "rounded-br-md bg-ink text-card" : "rounded-bl-md bg-paper text-ink ring-1 ring-line"}`}>{m.body}</p>
               </li>
             );
           })}
         </ul>
         <div ref={bottom} />
       </div>
-      {readOnly ? <p className="mt-3 text-sm text-muted">This is a message from the organizers. You can&apos;t reply here. Email aihackathonumich@gmail.com with questions.</p> : <form onSubmit={send} className="mt-3 flex gap-2">
-        <label htmlFor="msg" className="sr-only">Message</label>
-        <textarea id="msg" rows={2} maxLength={2000} className="input resize-none" placeholder="Write a message"
-          value={draft} onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); (e.currentTarget.form as HTMLFormElement).requestSubmit(); } }} />
-        <button className="btn-primary self-end" disabled={sending || !draft.trim()}>{sending ? "Sending…" : "Send"}</button>
-      </form>}
-      {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
-      {!readOnly && <p className="hint">Enter sends. Shift + Enter adds a new line.</p>}
+      <div className="border-t border-line p-3">
+        {readOnly ? <p className="text-sm text-muted">Announcement</p>
+          : locked ? <Link href="/dashboard" className="btn-primary">Pay to message</Link>
+          : <form onSubmit={send} className="flex gap-2">
+            <label htmlFor="msg" className="sr-only">Message</label>
+            <input id="msg" maxLength={2000} className="input" placeholder="Write a message…" autoComplete="off"
+              value={draft} onChange={(e) => setDraft(e.target.value)} />
+            <button className="btn-primary" disabled={sending || !draft.trim()}>Send</button>
+          </form>}
+        {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
+      </div>
     </div>
   );
 }

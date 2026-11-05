@@ -20,7 +20,7 @@ export default function ActionButton({ action, children, variant = "primary", co
           if (confirm && !window.confirm(confirm)) return;
           start(async () => setResult(await action()));
         }}>
-        {pending ? "Working…" : children}
+        {pending ? <><span className="spinner" aria-hidden />Working…</> : children}
       </button>
       {result?.error && <span role="alert" className="max-w-xs text-sm text-danger">{result.error}</span>}
       {result?.ok && <span role="status" className="text-sm text-ok">{result.ok}</span>}

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { safeNext } from "@/lib/safe-next";
 import { createClient } from "@/lib/supabase/client";
 import { claimSignupSource } from "@/lib/claim-source";
 
@@ -10,6 +11,7 @@ import { claimSignupSource } from "@/lib/claim-source";
 export default function TestLogin() {
   const supabase = createClient();
   const router = useRouter();
+  const next = safeNext(useSearchParams().get("next")) ?? "/dashboard";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +32,7 @@ export default function TestLogin() {
     setBusy(false);
     if (err) return setError(err.message);
     await claimSignupSource(supabase);
-    router.replace("/dashboard");
+    router.replace(next);
     router.refresh();
   }
 
@@ -40,10 +42,8 @@ export default function TestLogin() {
       <input id="t-email" type="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} required />
       <label htmlFor="t-pass" className="label mt-3">Password</label>
       <input id="t-pass" type="password" minLength={6} className="input" value={password} onChange={(e) => setPassword(e.target.value)} required />
-      <p className="hint">At least 6 characters. Remember it: there&apos;s no password reset in the test version.</p>
       {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
       <button className="btn-primary mt-5 w-full py-3" disabled={busy}>{busy ? "Signing in…" : "Sign in or create account"}</button>
-      <p className="mt-4 text-xs text-muted">Test version: no confirmation email.</p>
     </form>
   );
 }

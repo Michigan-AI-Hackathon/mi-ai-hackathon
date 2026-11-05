@@ -1,5 +1,6 @@
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
+import FilterToggle from "@/components/FilterToggle";
 import StudentCard from "@/components/StudentCard";
 import { currentFee, SKILL_SUGGESTIONS, TRACKS } from "@/lib/config";
 import { requireStudent } from "@/lib/session";
@@ -25,8 +26,9 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
   if (sp.track) query = query.contains("tracks", [sp.track]);
   if (sp.skill) query = query.contains("skills", [sp.skill]);
   if (sp.school) query = query.eq("school_id", Number(sp.school));
-  if (sp.status === "no-team") query = query.is("team_id", null);
-  if (sp.status === "looking") query = query.is("team_id", null).eq("looking_for_team", true);
+  const status = sp.status ?? "looking"; // default: only people who want a team
+  if (status === "no-team") query = query.is("team_id", null);
+  if (status === "looking") query = query.is("team_id", null).eq("looking_for_team", true);
   if (sp.others && me?.school_group) query = query.neq("school_group", me.school_group);
   const { data: students } = await query;
   const list = (students ?? []) as Student[];
@@ -34,53 +36,58 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
 
   return (
     <div>
-      <PageHeader eyebrow="Directory" title="Find teammates">Search students from every school. Invite someone to your team, ask to join theirs, or send a message.</PageHeader>
-      {!canAct && <p className="mt-4 rounded-lg bg-warn/10 px-4 py-3 text-[15px] text-warn">Pay the {currentFee().label} registration fee from your dashboard to invite or message people.</p>}
+      <PageHeader title="Find teammates" />
+      {!canAct && <p className="mt-4 rounded-lg bg-warn/10 px-4 py-3 text-[15px] text-warn">Pay the {currentFee().label} fee on your <Link href="/dashboard" className="underline">dashboard</Link> to invite or message.</p>}
 
-      <form className="panel mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-6" role="search">
-        <div className="lg:col-span-2">
-          <label htmlFor="q" className="label">Search</label>
-          <input id="q" name="q" defaultValue={sp.q} className="input" placeholder="Name, major or keyword" />
+      <form className="panel mt-6 space-y-4" role="search">
+        <div className="flex items-end gap-2">
+          <div className="min-w-0 flex-1">
+            <label htmlFor="q" className="label">Search</label>
+            <input id="q" name="q" defaultValue={sp.q} className="input" placeholder="Name, major or keyword" />
+          </div>
+          <button className="btn-primary shrink-0">Search</button>
         </div>
-        <div>
-          <label htmlFor="track" className="label">Track</label>
-          <select id="track" name="track" defaultValue={sp.track ?? ""} className="input">
-            <option value="">Any</option>{TRACKS.map((t) => <option key={t}>{t}</option>)}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="skill" className="label">Skill</label>
-          <select id="skill" name="skill" defaultValue={sp.skill ?? ""} className="input">
-            <option value="">Any</option>{SKILL_SUGGESTIONS.map((t) => <option key={t}>{t}</option>)}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="school" className="label">School</label>
-          <select id="school" name="school" defaultValue={sp.school ?? ""} className="input">
-            <option value="">Any</option>{(schools ?? []).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="status" className="label">Team status</label>
-          <select id="status" name="status" defaultValue={sp.status ?? ""} className="input">
-            <option value="">Everyone</option>
-            <option value="no-team">No team yet</option>
-            <option value="looking">Looking for a team</option>
-          </select>
-        </div>
-        <label className="flex items-center gap-2 text-[15px] sm:col-span-2 lg:col-span-4">
-          <input type="checkbox" name="others" value="1" defaultChecked={!!sp.others} className="h-4 w-4 accent-primary" />
-          Only show students from other schools
-        </label>
-        <div className="flex gap-2 sm:col-span-2 lg:justify-end">
-          <Link href="/people" className="btn-secondary">Clear</Link>
-          <button className="btn-primary">Search</button>
-        </div>
+        <FilterToggle active={[sp.track, sp.skill, sp.school, sp.others, sp.status && sp.status !== "looking" ? sp.status : ""].filter(Boolean).length}>
+          <div>
+            <label htmlFor="track" className="label">Track</label>
+            <select id="track" name="track" defaultValue={sp.track ?? ""} className="input">
+              <option value="">Any</option>{TRACKS.map((t) => <option key={t}>{t}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="skill" className="label">Skill</label>
+            <select id="skill" name="skill" defaultValue={sp.skill ?? ""} className="input">
+              <option value="">Any</option>{SKILL_SUGGESTIONS.map((t) => <option key={t}>{t}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="school" className="label">School or campus</label>
+            <select id="school" name="school" defaultValue={sp.school ?? ""} className="input">
+              <option value="">Any</option>{(schools ?? []).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="status" className="label">Status</label>
+            <select id="status" name="status" defaultValue={status} className="input">
+              <option value="looking">Looking for a team</option>
+              <option value="no-team">No team yet</option>
+              <option value="all">Everyone</option>
+            </select>
+          </div>
+          <label className="flex min-h-11 items-center gap-2 text-[15px] sm:col-span-2 lg:col-span-3">
+            <input type="checkbox" name="others" value="1" defaultChecked={!!sp.others} className="h-5 w-5 accent-primary" />
+            Only students from other schools
+          </label>
+          <div className="flex gap-2 sm:col-span-2 lg:col-span-2 lg:justify-end">
+            <Link href="/people" className="btn-secondary">Clear</Link>
+            <button className="btn-primary">Apply filters</button>
+          </div>
+        </FilterToggle>
       </form>
 
-      <p className="mt-6 text-sm text-muted" aria-live="polite">{list.length === 60 ? "Showing the first 60 matches. Narrow your search to see more." : `${list.length} ${list.length === 1 ? "student" : "students"}`}</p>
+      <p className="mt-6 text-sm text-muted" aria-live="polite">{list.length === 60 ? "First 60 shown." : `${list.length} ${list.length === 1 ? "student" : "students"}`}</p>
       {list.length === 0 ? (
-        <div className="panel mt-3 text-[15px]">No students match those filters. Try removing one.</div>
+        <div className="panel mt-3 text-[15px]">No matches.</div>
       ) : (
         <ul className="mt-4 grid gap-4 md:grid-cols-2">
           {list.map((s) => <StudentCard key={s.id} s={s} myTeamId={myTeamId} myTeamLocked={myTeamLocked} canAct={canAct} />)}

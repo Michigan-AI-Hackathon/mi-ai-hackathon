@@ -7,13 +7,13 @@ import { AVATAR_PRESETS, INTEREST_SUGGESTIONS, SKILL_SUGGESTIONS, TRACKS, YEARS 
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/session";
 
-const STEPS = ["You", "Your look", "What you bring"] as const;
+const STEPS = ["You", "Picture", "What you bring"] as const;
 
 function Private() {
   return <span className="ml-2 rounded-full bg-paper px-2 py-0.5 text-xs font-medium text-muted ring-1 ring-line">Private</span>;
 }
 
-export default function ProfileForm({ profile, schools, isNew }: { profile: Profile; schools: { id: number; name: string }[]; isNew: boolean }) {
+export default function ProfileForm({ profile, schools, isNew, next }: { profile: Profile; schools: { id: number; name: string }[]; isNew: boolean; next?: string }) {
   const [state, action, pending] = useActionState<ActionResult, FormData>(saveProfile, null);
   const multiCampus = schools.length > 1;
   const [step, setStep] = useState(0);
@@ -32,7 +32,6 @@ export default function ProfileForm({ profile, schools, isNew }: { profile: Prof
   const [looking, setLooking] = useState(profile.looking_for_team);
 
   const schoolName = schools.find((s) => String(s.id) === schoolId)?.name ?? "";
-  const first = name.trim().split(/\s+/)[0];
 
   function problem(s: number): string | null {
     if (s === 0) {
@@ -68,7 +67,7 @@ export default function ProfileForm({ profile, schools, isNew }: { profile: Prof
   const showSubmit = step === last || !isNew;
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+    <div className="grid min-h-dvh lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
       {/* ------------------------------ form side ------------------------------ */}
       <div className="flex flex-col px-5 py-6 sm:px-10 lg:px-16">
         <div className="flex items-center justify-between">
@@ -93,6 +92,7 @@ export default function ProfileForm({ profile, schools, isNew }: { profile: Prof
             for (let i = 0; i <= last; i++) { const p = problem(i); if (p) { e.preventDefault(); setStep(i); return setError(p); } }
           }}>
           {/* hidden fields so every step is submitted even when not shown */}
+          {next && <input type="hidden" name="next" value={next} />}
           <input type="hidden" name="avatar_url" value={avatar} />
           <input type="hidden" name="school_id" value={schoolId} />
           {tracks.map((t) => <input key={t} type="hidden" name="tracks" value={t} />)}
@@ -100,7 +100,6 @@ export default function ProfileForm({ profile, schools, isNew }: { profile: Prof
           {/* Step 1 */}
           <section hidden={step !== 0} className="rise">
             <h1 className="font-heading text-4xl font-bold sm:text-[2.75rem]">{isNew ? "Let’s set you up." : "Your profile"}</h1>
-            <p className="mt-3 text-[16px] text-muted">The basics. Teammates will see your name, school and what you study.</p>
             <div className="mt-8 space-y-6">
               <div>
                 <label htmlFor="full_name" className="label">Your name</label>
@@ -119,10 +118,9 @@ export default function ProfileForm({ profile, schools, isNew }: { profile: Prof
                         </button>
                       ))}
                     </div>
-                    <p className="hint">Your email is shared by more than one campus, so pick yours.</p>
                   </>
                 ) : (
-                  <p className="input flex items-center justify-between bg-paper">{schools[0]?.name ?? "Unknown school"}<span className="text-xs text-muted">from your email</span></p>
+                  <p className="input flex items-center justify-between bg-paper">{schools[0]?.name ?? "Unknown school"}</p>
                 )}
               </div>
               <div className="grid gap-6 sm:grid-cols-2">
@@ -132,7 +130,6 @@ export default function ProfileForm({ profile, schools, isNew }: { profile: Prof
                     <option value="" disabled>Pick your year</option>
                     {YEARS.map((y) => <option key={y}>{y}</option>)}
                   </select>
-                  <p className="hint">Only organizers see this.</p>
                 </div>
                 <div>
                   <label htmlFor="study_area" className="label">What you study</label>
@@ -144,8 +141,7 @@ export default function ProfileForm({ profile, schools, isNew }: { profile: Prof
 
           {/* Step 2 */}
           <section hidden={step !== 1} className="rise">
-            <h1 className="font-heading text-4xl font-bold sm:text-5xl">{first ? `Pick your look, ${first}.` : "Pick your look."}</h1>
-            <p className="mt-3 text-[16px] text-muted">Choose the one that feels most like you, or upload your own photo. You can change it any time.</p>
+            <h1 className="font-heading text-4xl font-bold sm:text-5xl">Choose a picture</h1>
             <div className="mt-8 grid grid-cols-3 gap-3 sm:grid-cols-4">
               {AVATAR_PRESETS.map((p) => {
                 const on = avatar === p.key;
@@ -175,10 +171,9 @@ export default function ProfileForm({ profile, schools, isNew }: { profile: Prof
           {/* Step 3 */}
           <section hidden={step !== 2} className="rise">
             <h1 className="font-heading text-4xl font-bold sm:text-5xl">What do you bring?</h1>
-            <p className="mt-3 text-[16px] text-muted">This is how teams find you. The more specific, the better the matches.</p>
             <div className="mt-8 space-y-7">
               <fieldset>
-                <legend className="label">Tracks you&apos;re interested in</legend>
+                <legend className="label">Tracks</legend>
                 <div className="flex flex-wrap gap-2">
                   {TRACKS.map((t) => {
                     const on = tracks.includes(t);
@@ -190,11 +185,12 @@ export default function ProfileForm({ profile, schools, isNew }: { profile: Prof
                 </div>
               </fieldset>
               <div><p className="label">Skills</p><ChipPicker name="skills" suggestions={SKILL_SUGGESTIONS} initial={profile.skills} placeholder="Add a skill" onChange={setSkills} /></div>
-              <div><p className="label">Interests</p><ChipPicker name="interests" suggestions={INTEREST_SUGGESTIONS} initial={profile.interests} placeholder="Add an interest" /></div>
+              <div><p className="label">Interests (optional)</p><ChipPicker name="interests" suggestions={INTEREST_SUGGESTIONS} initial={profile.interests} placeholder="Add an interest" /></div>
               <div>
                 <label htmlFor="bio" className="label">What you&apos;re looking for</label>
-                <textarea id="bio" name="bio" rows={3} maxLength={500} className="input" value={bio} onChange={(e) => setBio(e.target.value)}
-                  placeholder="e.g. Looking for a designer and someone who knows healthcare. I can handle the backend." />
+                <textarea id="bio" name="bio" rows={2} maxLength={100} className="input" value={bio} onChange={(e) => setBio(e.target.value)}
+                  placeholder="e.g. Need a designer. I can do the backend." />
+                <p className="hint text-right">{bio.length}/100</p>
               </div>
               <div>
                 <label htmlFor="linkedin_url" className="label">LinkedIn (optional)</label>
@@ -213,7 +209,7 @@ export default function ProfileForm({ profile, schools, isNew }: { profile: Prof
           <div className="sticky bottom-0 -mx-5 mt-10 flex items-center gap-3 border-t border-line bg-paper/90 px-5 py-4 backdrop-blur-md sm:-mx-10 sm:px-10 lg:-mx-16 lg:px-16">
             {step > 0 && <button type="button" className="btn-secondary px-5 py-3" onClick={() => go(step - 1)}>Back</button>}
             {step < last && <button type="button" className={`${isNew ? "btn-primary" : "btn-secondary"} px-6 py-3 text-[15px]`} onClick={() => go(step + 1)}>Continue <span aria-hidden>→</span></button>}
-            {showSubmit && <button className="btn-primary px-6 py-3 text-[15px]" disabled={pending}>{pending ? "Saving…" : isNew ? "Finish and go to my dashboard" : "Save changes"}</button>}
+            {showSubmit && <button className="btn-primary px-6 py-3 text-[15px]" disabled={pending}>{pending ? "Saving…" : isNew ? "Finish" : "Save changes"}</button>}
           </div>
         </form>
       </div>
@@ -221,7 +217,7 @@ export default function ProfileForm({ profile, schools, isNew }: { profile: Prof
       {/* ----------------------------- live preview ----------------------------- */}
       <aside className="hero-panel sticky top-0 hidden h-screen items-center justify-center self-start rounded-none p-12 lg:flex" aria-label="Profile preview">
         <div className="w-full max-w-sm">
-          <p className="text-sm text-on-hero/60">This is how teammates will see you</p>
+          <p className="text-sm text-on-hero/60">Preview</p>
           <div className="mt-5 -rotate-1 rounded-2xl bg-card p-7 text-ink shadow-2xl transition-transform duration-500 [transition-timing-function:var(--ease-out)] hover:rotate-0">
             <div className="flex items-center gap-4">
               <Avatar url={avatar} name={name || "You"} size={72} />
@@ -236,7 +232,7 @@ export default function ProfileForm({ profile, schools, isNew }: { profile: Prof
                 {tracks.map((t) => <span key={t} className="chip border-ink/30 bg-paper font-medium">{t}</span>)}
                 {skills.slice(0, 5).map((k) => <span key={k} className="chip">{k}</span>)}
               </div>
-            ) : <p className="mt-5 text-sm text-muted">Your tracks and skills will show up here.</p>}
+            ) : null}
             <p className={`mt-6 border-t border-line pt-4 text-sm font-medium ${looking ? "text-ok" : "text-muted"}`}>{looking ? "● Looking for a team" : "Not looking for a team"}</p>
           </div>
         </div>

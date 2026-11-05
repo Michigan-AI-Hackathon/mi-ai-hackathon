@@ -2,9 +2,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export default function NavLink({ href, children, badge = 0 }: { href: string; children: React.ReactNode; badge?: number }) {
+export default function NavLink({ href, children, badge = 0, also = [] }: { href: string; children: React.ReactNode; badge?: number; also?: string[] }) {
   const path = usePathname();
-  const active = path === href || path.startsWith(href + "/");
+  const active = [href, ...also].some((h) => path === h || path.startsWith(h + "/"));
   return (
     <Link href={href} aria-current={active ? "page" : undefined}
       className={`group relative flex shrink-0 items-center gap-2 px-3 py-3 text-[15px] font-medium transition-colors ${active ? "text-ink" : "text-muted hover:text-ink"}`}>

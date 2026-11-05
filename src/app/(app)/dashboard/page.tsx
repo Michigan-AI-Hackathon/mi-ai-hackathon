@@ -2,9 +2,7 @@ import Link from "next/link";
 import Avatar from "@/components/Avatar";
 import Countdown from "@/components/Countdown";
 import PayButton from "@/components/PayButton";
-import QrCode from "@/components/QrCode";
-import { siteUrl } from "@/lib/site";
-import { AvatarStack, SeatPips } from "@/components/Seats";
+import { SeatPips } from "@/components/Seats";
 import { startCheckout } from "@/app/actions";
 import { EVENT, LOCK_DEADLINE_LABEL, currentFee } from "@/lib/config";
 import { requireStudent } from "@/lib/session";
@@ -41,28 +39,32 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const teamSize = members.length;
   const paid = !!profile.paid_at;
   const fee = currentFee();
-  const passUrl = paid ? `${await siteUrl()}/admin/pass/${profile.id}` : null;
+  const pass = paid ? (
+    <div className="panel rise" style={{ "--i": 1 } as React.CSSProperties}>
+      <p className="eyebrow text-muted">Event check-in</p>
+      {profile.checked_in_at
+        ? <p className="mt-2 font-heading text-lg font-semibold">Checked in</p>
+        : <>
+            <p className="mt-2 text-[15px]">Scan the QR code at the venue to check in.</p>
+            <Link href="/checkin" className="link-draw mt-2 inline-block text-sm font-medium text-ink">How check-in works</Link>
+          </>}
+    </div>
+  ) : null;
   const first = profile.full_name?.split(" ")[0] ?? "there";
-  const flags = [true, true, paid, !!team, !!team?.locked_at];
-  const doneCount = flags.filter(Boolean).length;
+  const flags = [paid, !!team, !!team?.locked_at];
   const current = flags.findIndex((f) => !f);
 
   return (
     <div>
       <div className="rise mb-10 flex flex-wrap items-end justify-between gap-6">
         <div className="flex items-center gap-5">
-          <Avatar url={profile.avatar_url} name={profile.full_name} size={64} />
           <div>
-            <p className="eyebrow text-primary">{sp.welcome ? "Welcome" : "Your dashboard"}</p>
             <h1 className="mt-1 font-heading text-4xl font-bold sm:text-5xl">{sp.welcome ? `Welcome, ${first}.` : `Hi, ${first}.`}</h1>
           </div>
         </div>
-        <div className="min-w-56">
-          <p className="text-sm text-muted"><span className="font-semibold text-ink">{doneCount} of 5</span> steps done</p>
-          <div className="mt-2 flex gap-1.5" aria-hidden>
-            {flags.map((f, i) => <span key={i} className={`h-2 flex-1 rounded-full transition-colors duration-700 ${f ? "bg-accent" : "bg-line"}`} />)}
-          </div>
-        </div>
+        <Link href="/onboarding" aria-label="Edit your profile" className="rounded-full transition-transform hover:scale-105">
+          <Avatar url={profile.avatar_url} name={profile.full_name} size={88} />
+        </Link>
       </div>
 
       {sp.paid && !paid && (
@@ -71,42 +73,50 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         </p>
       )}
 
+      {pass && <div className="mb-6 lg:hidden">{pass}</div>}
+
+      <section className="rise mb-6 rounded-2xl border-2 border-ink bg-card p-6 sm:p-8" aria-labelledby="next-h">
+        {current === 0 && (<>
+          <h2 id="next-h" className="mt-1 font-heading text-2xl font-bold">Pay the {fee.label} registration fee</h2>
+          <form action={startCheckout} className="mt-4"><PayButton label={`Pay ${fee.label}`} /></form>
+        </>)}
+        {current === 1 && (<>
+          <h2 id="next-h" className="mt-1 font-heading text-2xl font-bold">Get on a team of 4</h2>
+          <div className="mt-4 flex flex-wrap gap-2"><Link href="/teams" className="btn-primary">Teams</Link><Link href="/people" className="btn-secondary">Find teammates</Link></div>
+        </>)}
+        {current === 2 && (<>
+          <h2 id="next-h" className="mt-1 font-heading text-2xl font-bold">Lock in your team</h2>
+          <p className="mt-1 text-[15px] text-muted">Deadline: {settings?.lock_deadline ? new Date(settings.lock_deadline).toLocaleDateString(undefined, { month: "long", day: "numeric" }) : LOCK_DEADLINE_LABEL.toLowerCase()}.</p>
+          <div className="mt-4"><Link href="/team" className="btn-primary">My team</Link></div>
+        </>)}
+        {current === -1 && (<>
+          <h2 id="next-h" className="mt-1 font-heading text-2xl font-bold">You&apos;re all set</h2>
+          <div className="mt-4"><Link href="/messages" className="btn-primary">Team chat</Link></div>
+        </>)}
+      </section>
+
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         <section className="panel rise p-6 sm:p-8" style={{ "--i": 2 } as React.CSSProperties}>
-          <h2 className="mb-7 font-heading text-xl font-semibold">Before the hackathon</h2>
+          <h2 className="mb-7 font-heading text-xl font-semibold">Checklist</h2>
           <ol>
-            <Step n={1} done current={false} title="Create your account" />
-            <Step n={2} done current={false} title="Set up your profile">
-              <Link href="/onboarding" className="link-draw font-medium text-ink">Edit your profile</Link>
+            <Step n={1} done={paid} current={current === 0} title={paid ? "Registration paid" : `Pay the ${fee.label} registration fee`}>
+              {paid ? <>Paid {new Date(profile.paid_at!).toLocaleDateString()}.</> : <>Non-refundable.</>}
             </Step>
-            <Step n={3} done={paid} current={current === 2} title={paid ? "Registration paid" : `Pay the ${fee.label} registration fee`}>
-              {paid ? (
-                <>Paid {new Date(profile.paid_at!).toLocaleDateString()}. Thank you.</>
-              ) : (
-                <>
-                  <p>{fee.earlyBird ? "Early-bird price. " : ""}Have a coupon code? Enter it at checkout. The fee is non-refundable, and you need to pay before you can join a team or appear in search.</p>
-                  <form action={startCheckout} className="mt-4"><PayButton label={`Pay ${fee.label}`} /></form>
-                </>
-              )}
-            </Step>
-            <Step n={4} done={!!team} current={current === 3} title={team ? `On team ${team.name}` : "Join or create a team"}>
-              {team ? (
-                <div className="mt-1 flex flex-wrap items-center gap-4">
-                  <AvatarStack people={members} />
-                  <SeatPips filled={teamSize} />
-                  <Link href="/team" className="link-draw font-medium text-ink">Go to your team</Link>
-                </div>
-              ) : (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Link href="/people" className="btn-primary">Find teammates</Link>
-                  <Link href="/teams" className="btn-secondary">Browse open teams</Link>
+            <Step n={2} done={!!team} current={current === 1} title={team ? `On team ${team.name}` : "Join or create a team"}>
+              {team && (
+                <div className="mt-1 space-y-3">
+                  <ul className="flex flex-wrap gap-2">
+                    {members.map((m) => (
+                      <li key={m.id}><Link href={`/people/${m.id}`} className="flex min-h-11 items-center gap-2 rounded-full border border-line bg-card py-1 pl-1 pr-3 text-ink transition-all hover:-translate-y-0.5 hover:border-ink hover:text-primary active:scale-95">
+                        <Avatar url={m.avatar_url} name={m.full_name} size={32} /><span className="text-sm font-medium">{m.full_name}</span><span aria-hidden className="text-primary">›</span></Link></li>
+                    ))}
+                  </ul>
+                  <div className="flex flex-wrap items-center gap-4"><SeatPips filled={teamSize} /><Link href="/team" className="link-draw font-medium text-ink">My team</Link></div>
                 </div>
               )}
             </Step>
-            <Step n={5} done={!!team?.locked_at} current={current === 4} last title={team?.locked_at ? "Team locked in" : "Lock in your team"}>
-              {team?.locked_at ? "Your spot is guaranteed." : (
-                <>Locked teams are guaranteed a spot. Deadline: {settings?.lock_deadline ? new Date(settings.lock_deadline).toLocaleDateString(undefined, { month: "long", day: "numeric" }) : LOCK_DEADLINE_LABEL.toLowerCase()}.</>
-              )}
+            <Step n={3} done={!!team?.locked_at} current={current === 2} last title={team?.locked_at ? "Team locked in" : "Lock in your team"}>
+              {team?.locked_at ? null : "Needs all 4 people."}
             </Step>
           </ol>
         </section>
@@ -117,26 +127,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
             <div className="mt-5"><Countdown to={EVENT.startsAt} size="md" /></div>
             <p className="mt-6 border-t border-on-hero/15 pt-4 text-sm text-on-hero/65">{EVENT.dateLabel} · {EVENT.place}</p>
           </div>
-          {passUrl && (
-            <div className="panel rise text-center" style={{ "--i": 4 } as React.CSSProperties}>
-              <p className="eyebrow text-muted">Your event pass</p>
-              <div className="mx-auto mt-4 w-fit rounded-xl border border-line bg-white p-3"><QrCode value={passUrl} size={150} label="Your personal check-in QR code" /></div>
-              <p className="mt-3 text-sm text-muted">{profile.checked_in_at ? "You're checked in." : "At the event, scan the venue QR code, or show this pass at the desk."}</p>
-            </div>
-          )}
-          <div className="panel rise" style={{ "--i": 5 } as React.CSSProperties}>
-            <p className="eyebrow text-muted">Jump to</p>
-            <ul className="mt-3 divide-y divide-line text-[15px]">
-              {[["/people", "Find teammates", "Search every school"], ["/teams", "Open teams", "Ask to join one"], ["/invites", "Invites", "Answer your invites"], ["/messages", "Messages", "Team chat and direct"]].map(([h, t, d]) => (
-                <li key={h}>
-                  <Link href={h} className="group flex items-center justify-between py-3 transition-[padding] duration-300 hover:pl-1.5">
-                    <span><span className="block font-semibold">{t}</span><span className="text-muted">{d}</span></span>
-                    <span aria-hidden className="text-lg transition-transform duration-300 group-hover:translate-x-1">→</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {pass && <div className="hidden lg:block">{pass}</div>}
         </aside>
       </div>
     </div>

@@ -1,37 +1,6 @@
-import Link from "next/link";
-import Avatar from "@/components/Avatar";
-import PageHeader from "@/components/PageHeader";
-import { requireStudent } from "@/lib/session";
+import Inbox from "./Inbox";
 
-type Conv = { conversation_id: string; kind: string; title: string | null; last_body: string | null; last_at: string | null; unread: number };
-
-export default async function MessagesPage() {
-  const { supabase } = await requireStudent();
-  const { data } = await supabase.rpc("my_conversations");
-  const convs = (data ?? []) as Conv[];
-  return (
-    <div className="max-w-3xl">
-      <PageHeader eyebrow="Inbox" title="Messages">If you don&apos;t read a message within 15 minutes, we&apos;ll email you so you don&apos;t miss it.</PageHeader>
-      {convs.length === 0 ? (
-        <p className="panel mt-6 text-[15px]">No conversations yet. Message someone from <Link href="/people" className="font-medium text-primary hover:underline">Find teammates</Link>. Your team chat shows up here once you join a team.</p>
-      ) : (
-        <ul className="panel mt-6 divide-y divide-line p-0 sm:p-0">
-          {convs.map((c) => (
-            <li key={c.conversation_id}>
-              <Link href={`/messages/${c.conversation_id}`} className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-paper">
-                {c.kind === "system" ? <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-ink text-xs font-bold text-card">HQ</span> : <Avatar name={c.title} size={44} />}
-                <div className="min-w-0 flex-1">
-                  <p className={`truncate font-heading text-lg ${c.unread ? "font-bold" : "font-semibold"}`}>
-                    {c.kind === "team" ? `Team chat: ${c.title}` : c.kind === "system" ? "Organizers" : c.title ?? "Student"}
-                  </p>
-                  <p className={`truncate text-[15px] ${c.unread ? "text-ink" : "text-muted"}`}>{c.last_body ?? "No messages yet"}</p>
-                </div>
-                {c.unread > 0 && <span className="rounded-full bg-accent px-2 py-0.5 text-sm font-bold text-hero">{c.unread}<span className="sr-only"> unread</span></span>}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
+export default async function MessagesPage({ searchParams }: { searchParams: Promise<{ c?: string }> }) {
+  const { c } = await searchParams;
+  return <Inbox selected={c ?? null} />;
 }

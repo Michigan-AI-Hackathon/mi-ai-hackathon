@@ -36,6 +36,7 @@ export async function updateSession(request: NextRequest) {
   if (!user && PROTECTED.some((p) => path === p || path.startsWith(p + "/"))) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    url.search = "";
     url.searchParams.set("next", path + request.nextUrl.search); // keep ?t=… so QR scans survive signing in
     return NextResponse.redirect(url);
   }

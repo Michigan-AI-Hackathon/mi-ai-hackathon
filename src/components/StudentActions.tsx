@@ -10,10 +10,10 @@ export default function StudentActions({ studentId, theirTeamId, myTeamId, myTea
   return (
     <div className="flex flex-wrap items-start gap-2">
       {myTeamId && !myTeamLocked && !theirTeamId && (
-        <ActionButton action={() => sendInvite(studentId)}>Invite to my team</ActionButton>
+        <ActionButton action={() => sendInvite(studentId)}>Invite</ActionButton>
       )}
       {!myTeamId && theirTeamId && (
-        <ActionButton action={() => requestToJoin(theirTeamId)} variant="secondary">Ask to join their team</ActionButton>
+        <ActionButton action={() => requestToJoin(theirTeamId)} variant="secondary">Ask to join</ActionButton>
       )}
       <ActionButton action={() => messageStudent(studentId)} variant="secondary">Message</ActionButton>
     </div>

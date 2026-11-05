@@ -46,7 +46,7 @@ h1, h2, h3 { font-family: var(--font-family-heading); font-weight: var(--heading
 /* ---------- Building blocks. Every page uses these. ---------- */
 /* Buttons: ink fill, a vermilion layer wipes in from the left on hover, and they press down on click. */
 @utility btn {
-  @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-md px-4 py-2.5 text-sm font-semibold;
+  @apply relative inline-flex items-center justify-center gap-2 overflow-hidden min-h-11 rounded-md px-4 py-2.5 text-sm font-semibold;
   transition: transform 160ms var(--ease-out), box-shadow 200ms var(--ease-out), border-color 200ms, color 200ms;
   &:active:not(:disabled) { transform: translateY(1px) scale(0.985); }
   &:disabled { @apply cursor-not-allowed opacity-50; }
@@ -64,7 +64,7 @@ h1, h2, h3 { font-family: var(--font-family-heading); font-weight: var(--heading
 }
 @utility btn-danger { @apply btn border border-line bg-card text-danger; &:hover:not(:disabled) { border-color: var(--color-error); } }
 @utility input {
-  @apply w-full rounded-md border border-line bg-card px-3 py-2.5 text-[15px] text-ink placeholder:text-muted;
+  @apply w-full rounded-md border border-line bg-card px-3 py-3 text-base text-ink placeholder:text-muted sm:py-2.5 sm:text-[15px];
   transition: border-color 150ms, box-shadow 200ms var(--ease-out);
   &:focus { outline: none; border-color: var(--color-text); box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-brand-accent) 28%, transparent); }
 }
@@ -115,3 +115,33 @@ h1, h2, h3 { font-family: var(--font-family-heading); font-weight: var(--heading
   .rise, .reveal { opacity: 1 !important; transform: none !important; }
   .hl { background-size: 100% 100% !important; }
 }
+
+/* Loading feedback: skeleton shimmer, spinner, nav progress */
+@keyframes sk-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.sk {
+  border-radius: 0.5rem;
+  background: linear-gradient(90deg, rgb(0 0 0 / 0.05) 25%, rgb(0 0 0 / 0.10) 50%, rgb(0 0 0 / 0.05) 75%);
+  background-size: 200% 100%;
+  animation: sk-shimmer 1.6s linear infinite;
+}
+@keyframes spin-kf { to { transform: rotate(360deg); } }
+.spinner {
+  display: inline-block; width: 0.9em; height: 0.9em; margin-right: 0.45em; vertical-align: -0.1em;
+  border: 2px solid currentColor; border-right-color: transparent; border-radius: 9999px;
+  animation: spin-kf 0.7s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sk { animation: none !important; }
+  .spinner { animation-duration: 2s !important; animation: spin-kf 2s linear infinite !important; }
+}
+
+/* Clickable cards: lift on hover, press on tap, spinner while the next page loads (NavProgress sets data-pending). */
+.tap-card { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.tap-card:hover { transform: translateY(-3px); border-color: var(--color-text); box-shadow: 0 6px 0 -2px color-mix(in srgb, var(--color-text) 18%, transparent); }
+.tap-card:active { transform: translateY(0) scale(0.985); box-shadow: none; }
+[data-pending] { opacity: 0.65; }
+.tap-card[data-pending]::after {
+  content: ""; position: absolute; top: 0.9rem; right: 0.9rem; width: 1.1rem; height: 1.1rem; z-index: 5;
+  border: 2px solid var(--color-brand-accent); border-right-color: transparent; border-radius: 9999px; animation: spin-kf 0.7s linear infinite;
+}
+.pb-safe { padding-bottom: env(safe-area-inset-bottom); }

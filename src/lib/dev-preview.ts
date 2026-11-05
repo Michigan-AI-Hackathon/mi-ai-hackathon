@@ -1,5 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { DEV_SCHOOLS, devMatchingRows } from "@/lib/dev-matching-data";
 
 // DEV ONLY. In `next dev`, a cookie turns the whole app into a clickable preview with fake
 // students, teams and messages, so every page can be designed without signing in.
@@ -42,12 +43,12 @@ function build(requested: Scenario) {
   const dir = [
     { id: ME, full_name: "Alex Rivera", school_id: 1, school_name: "University of Michigan – Ann Arbor", school_group: "school-1", study_area: "Information science",
       skills: ["Frontend", "Product management"], interests: ["Startups"], tracks: ["FinTech"], bio: "Looking for someone who knows finance and a strong backend engineer.",
-      looking_for_team: true, linkedin_url: null, team_id: meTeam, team_name: meTeam ? "Maize Mind" : null, avatar_url: "preset-engineer" },
+      looking_for_team: true, linkedin_url: "https://www.linkedin.com/in/alex-rivera", year: "Third year", team_id: meTeam, team_name: meTeam ? "Maize Mind" : null, avatar_url: "preset-engineer" },
     ...people.map((p, i) => ({
       id: `20000000-0000-4000-8000-0000000000${String(i + 10)}`, full_name: p[0], school_id: p[1], school_name: p[2], school_group: `school-${p[1]}`,
       study_area: p[4], skills: [...p[5]], interests: ["Startups"], tracks: [...p[6]],
       bio: i % 2 ? "Happy to be the builder on a team. Interested in real problems, not demos." : "Looking for teammates who ship. I can handle the research and the pitch.",
-      looking_for_team: !p[8], linkedin_url: null, team_id: scenario === "team" || p[8] !== T1 ? p[8] : null, team_name: scenario === "team" || p[8] !== T1 ? p[9] : null, avatar_url: p[7],
+      looking_for_team: !p[8], linkedin_url: i % 2 === 0 ? `https://www.linkedin.com/in/${p[0].toLowerCase().replace(/[^a-z]+/g, "-")}` : null, year: ["First year", "Second year", "Third year", "Fourth year"][i % 4], team_id: scenario === "team" || p[8] !== T1 ? p[8] : null, team_name: scenario === "team" || p[8] !== T1 ? p[9] : null, avatar_url: p[7],
     })),
   ];
   const members = dir.filter((d) => d.team_id).map((d) => ({ team_id: d.team_id, user_id: d.id, teams: { name: d.team_name, locked_at: null } }));
@@ -90,13 +91,14 @@ function build(requested: Scenario) {
     { id: 2, action: "add_to_team", details: { student: "…", team: "…", force: false }, created_at: iso(-6), profiles: { full_name: "Alex Rivera", email: "alex.rivera@umich.edu" } },
     { id: 1, action: "broadcast", details: { audience: "unpaid", recipients: 4, subject: "Registration closes Friday" }, created_at: iso(-30), profiles: { full_name: "Alex Rivera", email: "alex.rivera@umich.edu" } },
   ];
+  const mx = isAdmin ? devMatchingRows() : { teams: [], profiles: [], members: [] };
   return {
     audit_log: audit,
-    profiles: isAdmin ? [{ ...profile, schools: { name: "University of Michigan – Ann Arbor" }, checked_in_at: null, created_at: iso(-300) }, ...others] : [profile], student_directory: dir, team_members: members.filter((m) => m.user_id === ME || live.includes(m.team_id!)).concat([]),
-    teams, invites, app_settings: [{ lock_deadline: null, require_payment: true }],
+    profiles: isAdmin ? [{ ...profile, schools: { name: "University of Michigan – Ann Arbor" }, checked_in_at: null, created_at: iso(-300) }, ...others, ...mx.profiles] : [profile], student_directory: dir, team_members: members.filter((m) => m.user_id === ME || live.includes(m.team_id!)).concat(mx.members as typeof members),
+    teams: [...teams, ...mx.teams], invites, app_settings: [{ lock_deadline: null, require_payment: true }],
     conversations: [{ id: "c1", kind: scenario === "team" ? "team" : "direct", team_id: meTeam, teams: { name: "Maize Mind" } }, { id: "c3", kind: "system", team_id: null, teams: null }],
     conversation_members: [{ conversation_id: "c1", user_id: ME }, { conversation_id: "c1", user_id: dir[1].id }, { conversation_id: "c3", user_id: ME }],
-    messages, schools: [{ id: 1, name: "University of Michigan – Ann Arbor" }, { id: 2, name: "University of Michigan – Dearborn" }, { id: 3, name: "University of Michigan – Flint" }],
+    messages, schools: DEV_SCHOOLS,
     _convs: convs, _memberRows: memberRows,
   };
 }
@@ -110,6 +112,7 @@ class Query {
   eq(c: string, v: unknown) { this.fns.push((r) => (r[c] ?? null) === (v ?? null)); return this; }
   neq(c: string, v: unknown) { this.fns.push((r) => (r[c] ?? null) !== (v ?? null)); return this; }
   is(c: string, v: unknown) { return this.eq(c, v); }
+  not(c: string, _op: string, v: unknown) { this.fns.push((r) => (r[c] ?? null) !== (v ?? null)); return this; }
   in(c: string, v: unknown[]) { this.fns.push((r) => v.includes(r[c])); return this; }
   gt(c: string, v: string) { this.fns.push((r) => String(r[c]) > v); return this; }
   contains(c: string, v: unknown[]) { this.fns.push((r) => Array.isArray(r[c]) && v.every((x) => (r[c] as unknown[]).includes(x))); return this; }
@@ -149,7 +152,9 @@ export function createMockClient(scenario: Scenario) {
       by_school: [{ name: "University of Michigan – Ann Arbor", n: 34 }, { name: "Michigan State University", n: 27 }, { name: "Wayne State University", n: 15 }, { name: "Grand Valley State University", n: 9 }, { name: "Michigan Technological University", n: 7 }, { name: "Oakland University", n: 6 }],
       by_track: [{ name: "FinTech", n: 52 }, { name: "HealthTech", n: 44 }, { name: "SportsTech", n: 31 }, { name: "Industry 4.0", n: 27 }],
       signups_by_day: Array.from({ length: 21 }, (_, i) => ({ day: `2026-10-${String(i + 10).padStart(2, "0")}`, n: Math.round(3 + 9 * Math.abs(Math.sin(i / 3)) + i / 4) })) },
+    admin_matching_settings: { target_team_size: 4, allow_force_school_mix: false, track_weight: 3 },
     mark_read: null,
+    self_check_in: null,
   };
   return {
     auth: { getUser: async () => ({ data: { user: { id: me.id, email: me.email } }, error: null }) },

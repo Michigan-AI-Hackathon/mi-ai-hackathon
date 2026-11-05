@@ -2,13 +2,14 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { safeNext } from "@/lib/safe-next";
 import { claimSignupSource } from "@/lib/claim-source";
 
 export default function LoginForm() {
   const supabase = createClient();
   const router = useRouter();
   const params = useSearchParams();
-  const next = params.get("next") ?? "/dashboard";
+  const next = safeNext(params.get("next")) ?? "/dashboard";
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [step, setStep] = useState<"email" | "code">("email");
@@ -72,20 +73,17 @@ export default function LoginForm() {
       <input id="email" type="email" autoComplete="email" required className="input" placeholder="you@school.edu"
         value={email} onChange={(e) => setEmail(e.target.value)} aria-describedby={error ? "err" : undefined} />
       {error && <p id="err" role="alert" className="mt-2 text-sm text-danger">{error}</p>}
-      <button className="btn-primary mt-5 w-full py-3" disabled={busy}>{busy ? "Sending…" : "Email me a sign-in link"}</button>
+      <button className="btn-primary mt-5 w-full py-3" disabled={busy}>{busy ? "Sending…" : "Email me a link"}</button>
     </form>
   ) : (
     <div className="mt-8">
       <div className="panel">
         <p className="text-[16px] font-semibold">Check your email</p>
-        <p className="mt-1 text-[15px] text-muted">
-          We sent a sign-in link to <strong className="text-ink">{email}</strong>. Open it on this device to sign in.
-          It can take a minute to arrive, and it may land in spam.
-        </p>
+        <p className="mt-1 text-[15px] text-muted"><strong className="text-ink">{email}</strong></p>
       </div>
       {!showCode ? (
         <button type="button" className="btn mt-4 px-0 text-primary hover:underline" onClick={() => setShowCode(true)}>
-          Got a 6-digit code instead?
+          Enter a code instead
         </button>
       ) : (
         <form onSubmit={verify} className="mt-4">
@@ -97,7 +95,7 @@ export default function LoginForm() {
         </form>
       )}
       <button type="button" className="btn mt-2 w-full text-muted hover:text-ink" onClick={() => { setStep("email"); setCode(""); setError(null); setShowCode(false); }}>
-        Use a different email or resend
+        Different email
       </button>
     </div>
   );

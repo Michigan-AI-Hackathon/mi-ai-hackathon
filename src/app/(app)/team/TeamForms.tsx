@@ -20,7 +20,6 @@ export function TeamForm({ mode, initial }: { mode: "create" | "edit"; initial?:
       <div className="sm:col-span-2">
         <label htmlFor="needs" className="label">Who you&apos;re looking for</label>
         <input id="needs" name="needs" maxLength={200} className="input" placeholder="e.g. A designer and someone with healthcare experience" defaultValue={initial?.needs ?? ""} />
-        <p className="hint">Shown on the open teams page so students can ask to join.</p>
       </div>
       <div className="flex items-center gap-3 sm:col-span-2">
         <button className="btn-primary" disabled={pending}>{pending ? "Saving…" : mode === "create" ? "Create team" : "Save changes"}</button>

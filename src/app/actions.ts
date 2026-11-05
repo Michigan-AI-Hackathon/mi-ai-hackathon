@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { safeNext } from "@/lib/safe-next";
 import { stripe } from "@/lib/stripe";
 import { AVATAR_KEYS, EVENT, TRACKS, YEARS, currentFee } from "@/lib/config";
 
@@ -43,7 +44,7 @@ export async function saveProfile(_prev: ActionResult, form: FormData): Promise<
   const update: Record<string, unknown> = {
     full_name, year, study_area, tracks,
     skills: list("skills"), interests: list("interests"),
-    bio: String(form.get("bio") ?? "").trim().slice(0, 500) || null,
+    bio: String(form.get("bio") ?? "").trim().slice(0, 100) || null,
     looking_for_team: form.get("looking_for_team") === "on",
     linkedin_url: linkedin || null,
     avatar_url: avatar || null,
@@ -55,7 +56,7 @@ export async function saveProfile(_prev: ActionResult, form: FormData): Promise<
   const { error } = await supabase.from("profiles").update(update).eq("id", user.id);
   if (error) return { error: msg(error) };
   revalidatePath("/", "layout");
-  if (!current?.onboarded_at) redirect("/dashboard?welcome=1");
+  if (!current?.onboarded_at) redirect(safeNext(String(form.get("next") ?? "")) ?? "/dashboard?welcome=1");
   return { ok: "Profile saved." };
 }
 

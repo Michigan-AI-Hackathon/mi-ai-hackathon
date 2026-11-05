@@ -37,10 +37,10 @@ const roster = [
 ];
 
 const steps = [
-  { title: "Sign up with your school email", body: "Use your school address, not a personal one. We check it against Michigan colleges and universities." },
-  { title: "Build your profile and register", body: `Tell people what you're good at and which track you want, then pay the ${currentFee().label} registration fee.` },
-  { title: "Find teammates", body: "Search by skill, track and school. Invite someone to your team or ask to join theirs, and message them on the site." },
-  { title: "Lock in your team", body: "Locked teams are guaranteed a spot. Students without a team are matched at the event." },
+  { title: "Sign up", body: "Use your school email." },
+  { title: "Build your profile", body: `Add skills and a track. Pay the ${currentFee().label} fee.` },
+  { title: "Find teammates", body: "Search, invite, and message." },
+  { title: "Lock your team", body: "Locked teams keep their spot." },
 ];
 
 export default async function Home() {
@@ -50,22 +50,19 @@ export default async function Home() {
   const email = "aihackathonumich@gmail.com";
 
   const timeline = [
-    { when: "Open now", title: "Registration", body: `Create your account, finish your profile and pay the ${fee.label} fee.`, state: "open" },
-    { when: LOCK_DEADLINE_LABEL, title: "Team lock-in deadline", body: "Teams locked by this date are guaranteed a spot. We'll announce the date here and by email.", state: "tba" },
-    { when: "Before the event", title: "Solo matching", body: "Students who still have no team are placed on a team by the organizers.", state: "tba" },
+    { when: "Open now", title: "Registration", body: `Sign up and pay the ${fee.label} fee.`, state: "open" },
+    { when: LOCK_DEADLINE_LABEL, title: "Team lock-in", body: "Locked teams are guaranteed a spot.", state: "tba" },
+    { when: "Before the event", title: "Solo matching", body: "We place students without a team.", state: "tba" },
     { when: EVENT.dateLabel, title: "The hackathon", body: `24 hours of building. ${EVENT.place}.`, state: "event" },
   ];
 
   const faqs: FaqItem[] = [
-    { q: "Who can join?", a: <>Any student at a Michigan college or university: public universities, community colleges, tribal colleges, private colleges and graduate schools. You sign up with your school email, and we check it against our list of Michigan schools. You don&apos;t need to study computer science. About half of participants don&apos;t, and teams need designers, business students and future doctors.</> },
-    { q: "How do I register and what does it cost?", a: <>Create an account with your school email, finish your profile, then pay the {EVENT.feeLabel} registration fee from your dashboard. The fee is non-refundable. Have a coupon code? Enter it at checkout.</> },
-    { q: "How does payment work?", a: <>Payment is by card through Stripe, and we never see or store your card number. Once your payment goes through, your dashboard updates and you can search for teammates, send invites and start or join a team. If it doesn&apos;t update within a few minutes, email {email}.</> },
-    { q: "What are the team rules?", a: <>A team has 4 people from at least 3 different schools, with no more than 2 from the same school. UM Ann Arbor, Dearborn and Flint count as different schools. The site checks all of this for you, so you can&apos;t end up on a team that doesn&apos;t count.</> },
-    { q: "How do invites work?", a: <>Any member can invite students, and a team can have as many open invites as it has open spots. Invites expire after 48 hours. When a student asks to join your team, any one member can accept or decline.</> },
-    { q: "When do teams lock?", a: <>The lock-in deadline is {LOCK_DEADLINE_LABEL.toLowerCase()}. A team can lock once it has all 4 people, and everyone has paid. Locked teams are guaranteed a spot. After locking, nobody can join or leave without emailing an organizer.</> },
-    { q: "What if I don't have a team?", a: <>You can still register. Browse open teams, ask to join one, or wait to be invited. Students who are still without a team are matched by the organizers at the event.</> },
-    { q: "Where and when is it?", a: <>{EVENT.dateLabel}. {EVENT.place}. We&apos;ll update this page and email everyone as soon as it&apos;s confirmed.</> },
-    { q: "Who is running this?", a: <>{EVENT.host}. Questions? Email <a className="link-draw font-medium text-ink" href={`mailto:${email}`}>{email}</a>.</> },
+    { q: "Who can join?", a: <>Any student at a Michigan college or university. No CS background needed.</> },
+    { q: "What does it cost?", a: <>{EVENT.feeLabel}, non-refundable. Pay by card through Stripe. Coupon codes work at checkout.</> },
+    { q: "What are the team rules?", a: <>4 people from at least 3 schools, max 2 per school. UM Ann Arbor, Dearborn and Flint count separately. The site checks this for you.</> },
+    { q: "When do teams lock?", a: <>{LOCK_DEADLINE_LABEL}. A team can lock once all 4 members have paid.</> },
+    { q: "No team yet?", a: <>Register anyway. Ask to join a team, or we will match you.</> },
+    { q: "Questions?", a: <>{EVENT.host}. Email <a className="link-draw font-medium text-ink" href={`mailto:${email}`}>{email}</a>.</> },
   ];
 
   return (
@@ -114,7 +111,6 @@ export default async function Home() {
               <Link href={user ? "/dashboard" : "/login"} className="btn-primary px-7 py-4 text-base">
                 {user ? "Go to your dashboard" : "Create your account"} <span aria-hidden>→</span>
               </Link>
-              <p className="text-[15px] text-muted">For college students across the state.</p>
             </div>
             <div className="rise mt-12 flex items-center gap-4 text-sm text-muted" style={{ "--i": 4 } as React.CSSProperties}>
               Hosted by <HostMark size={34} />
@@ -152,20 +148,15 @@ export default async function Home() {
         <section id="rules" className="scroll-mt-20 border-t border-line">
           <div className="mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_1.1fr] lg:items-start lg:gap-16">
             <Reveal>
-              <p className="eyebrow text-primary">Team rules</p>
-              <h2 className="mt-4 font-heading text-4xl font-bold sm:text-5xl">Every team mixes schools.</h2>
-              <p className="mt-5 text-lg leading-relaxed text-muted">
-                You go home knowing people and resources on other campuses. The site checks these rules for you, so you can&apos;t end up on a team that doesn&apos;t count.
-              </p>
+              <h2 className="font-heading text-4xl font-bold sm:text-5xl">Every team mixes schools.</h2>
               <ul className="mt-8 divide-y divide-line border-y border-line text-[16px]">
-                {["Teams of 4, from at least 3 schools", "No more than 2 people from the same school", "Every team has all 4 people before it locks in", "UM Ann Arbor, Dearborn and Flint count as different schools"].map((t) => (
+                {["Teams of 4, from at least 3 schools", "No more than 2 people from the same school", "UM Ann Arbor, Dearborn and Flint count as different schools"].map((t) => (
                   <li key={t} className="flex items-center gap-3 py-3.5"><span aria-hidden className="h-1.5 w-1.5 rounded-full bg-accent" />{t}</li>
                 ))}
               </ul>
             </Reveal>
             <Reveal i={1}>
-              <p className="eyebrow text-muted">An example team</p>
-              <ul className="mt-4 divide-y divide-line border-y border-line" aria-label="Example team of four">
+              <ul className="divide-y divide-line border-y border-line" aria-label="Example team of four">
                 {roster.map((m, i) => (
                   <li key={m.skill} className="group flex items-center gap-4 py-4 transition-[padding] duration-300 [transition-timing-function:var(--ease-out)] hover:pl-2">
                     <span className="flex w-24 shrink-0 justify-start sm:w-28"><SchoolBadge slug={m.slug} abbr={m.abbr} name={m.school} size={22} maxW={100} /></span>
@@ -177,7 +168,6 @@ export default async function Home() {
                   </li>
                 ))}
               </ul>
-              <p className="mt-3 text-sm text-muted">Three schools, two people from Wayne State. That&apos;s a valid team.</p>
             </Reveal>
           </div>
         </section>
@@ -185,7 +175,7 @@ export default async function Home() {
         {/* Timeline */}
         <section id="timeline" className="scroll-mt-20 border-t border-line bg-card/60">
           <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-            <Reveal><p className="eyebrow text-primary">Timeline</p><h2 className="mt-4 font-heading text-4xl font-bold sm:text-5xl">What happens, and when</h2></Reveal>
+            <Reveal><h2 className="font-heading text-4xl font-bold sm:text-5xl">Timeline</h2></Reveal>
             <ol className="relative mt-12 grid gap-8 lg:grid-cols-4 lg:gap-6">
               <span aria-hidden className="absolute left-[5px] top-2 h-[calc(100%-1rem)] w-px bg-line lg:left-0 lg:top-[5px] lg:h-px lg:w-full" />
               {timeline.map((t, i) => (
@@ -204,8 +194,7 @@ export default async function Home() {
         <section id="register" className="scroll-mt-20 border-t border-line">
           <div className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_1fr] lg:gap-16">
             <Reveal>
-              <p className="eyebrow text-primary">Registration</p>
-              <h2 className="mt-4 font-heading text-4xl font-bold sm:text-5xl">Four steps to a team.</h2>
+              <h2 className="font-heading text-4xl font-bold sm:text-5xl">Four steps to a team.</h2>
               <ol className="mt-8 divide-y divide-line border-y border-line">
                 {steps.map((s, i) => (
                   <li key={s.title} className="flex gap-5 py-5">
@@ -221,11 +210,9 @@ export default async function Home() {
                 <p className="mt-3 font-heading text-6xl font-bold tracking-tight">{fee.label}</p>
                 <p className="mt-1 text-[15px] text-muted">per student · non-refundable{fee.earlyBird ? " · early-bird price" : ""}</p>
                 <ul className="mt-6 space-y-3 border-t border-line pt-6 text-[15px]">
-                  <li className="flex gap-3"><Check />Pay by card through Stripe. We never see your card number.</li>
-                  <li className="flex gap-3"><Check />Have a coupon code? Enter it at checkout.</li>
-                  <li className="flex gap-3"><Check />Paying unlocks search, invites, messages and team creation.</li>
-                  <li className="flex gap-3"><Check />Each teammate pays their own fee before the team can lock.</li>
-                </ul>
+                  <li className="flex gap-3"><Check />Pay by card through Stripe.</li>
+                                    <li className="flex gap-3"><Check />Paying unlocks teams and messaging.</li>
+                                  </ul>
                 <Link href={user ? "/dashboard" : "/login"} className="btn-primary mt-8 w-full py-3.5 text-[15px]">{user ? "Go to your dashboard" : "Create your account"} <span aria-hidden>→</span></Link>
               </div>
             </Reveal>
@@ -235,7 +222,7 @@ export default async function Home() {
         {/* Tracks */}
         <section className="border-t border-line">
           <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-            <Reveal><p className="eyebrow text-primary">Tracks</p><h2 className="mt-4 font-heading text-4xl font-bold sm:text-5xl">Pick a lane.</h2></Reveal>
+            <Reveal><h2 className="font-heading text-4xl font-bold sm:text-5xl">Tracks</h2></Reveal>
             <ul className="mt-10 border-t border-line">
               {TRACKS.map((t, i) => (
                 <Reveal as="li" key={t} i={i}>
@@ -248,9 +235,6 @@ export default async function Home() {
                 </Reveal>
               ))}
             </ul>
-            <Reveal><p className="mt-8 max-w-2xl text-[15px] text-muted">
-              About half the participants aren&apos;t computer science students. Designers, business students and future doctors are exactly who teams need.
-            </p></Reveal>
           </div>
         </section>
 
@@ -258,9 +242,7 @@ export default async function Home() {
         <section id="faq" className="scroll-mt-20 border-t border-line bg-card/60">
           <div className="mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_1.6fr] lg:gap-16">
             <Reveal>
-              <p className="eyebrow text-primary">FAQ</p>
-              <h2 className="mt-4 font-heading text-4xl font-bold sm:text-5xl">Questions, answered.</h2>
-              <p className="mt-5 text-[16px] leading-relaxed text-muted">Can&apos;t find yours? Email <a className="link-draw font-medium text-ink" href={`mailto:${email}`}>{email}</a>.</p>
+              <h2 className="font-heading text-4xl font-bold sm:text-5xl">FAQ</h2>
             </Reveal>
             <Reveal i={1}><Faq items={faqs} /></Reveal>
           </div>
@@ -271,7 +253,6 @@ export default async function Home() {
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr]">
           <div>
             <Logo />
-            <p className="mt-4 max-w-sm text-[15px] leading-relaxed text-muted">A statewide AI hackathon for Michigan college and university students. {EVENT.dateLabel}, Detroit.</p>
             <p className="mt-5 flex items-center gap-3 text-sm text-muted">Hosted by <HostMark size={36} /></p>
           </div>
           <div>
@@ -283,8 +264,7 @@ export default async function Home() {
           <div>
             <p className="eyebrow text-muted">Contact</p>
             <p className="mt-4 text-[15px]"><a className="link-draw" href={`mailto:${email}`}>{email}</a></p>
-            <p className="mt-2 text-[15px] text-muted">Registration is $20 and non-refundable.</p>
-          </div>
+                      </div>
         </div>
         <div className="border-t border-line"><p className="mx-auto max-w-6xl px-4 py-5 text-[13px] text-muted sm:px-6">© {new Date().getFullYear()} Business+Tech at Michigan Ross. School names and logos belong to their institutions.</p></div>
       </footer>
