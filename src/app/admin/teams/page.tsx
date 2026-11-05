@@ -1,12 +1,13 @@
 import Link from "next/link";
 import ActionButton from "@/components/ActionButton";
 import Avatar from "@/components/Avatar";
+import { AdminAssign, Drag, DragArea, Drop } from "@/components/DragDrop";
 import PageHeader from "@/components/PageHeader";
 import { SeatPips } from "@/components/Seats";
 import { adminDissolveTeam, adminRemoveFromTeam, adminSetTeamLock } from "@/app/admin/actions";
 import { requireAdmin } from "@/lib/admin";
 
-type Member = { id: string; full_name: string | null; school_id: number; paid_at: string | null; checked_in_at: string | null; avatar_url: string | null };
+type Member = { id: string; full_name: string | null; school_id: number; paid_at: string | null; onboarded_at?: string | null; checked_in_at: string | null; avatar_url: string | null };
 
 export default async function TeamsPage({ searchParams }: { searchParams: Promise<{ f?: string }> }) {
   const { f } = await searchParams;
@@ -14,7 +15,7 @@ export default async function TeamsPage({ searchParams }: { searchParams: Promis
   const [{ data: teams }, { data: tm }, { data: people }, { data: schools }] = await Promise.all([
     supabase.from("teams").select("id, name, track, locked_at, created_at").order("created_at", { ascending: false }).limit(500),
     supabase.from("team_members").select("team_id, user_id"),
-    supabase.from("profiles").select("id, full_name, school_id, paid_at, checked_in_at, avatar_url").limit(5000),
+    supabase.from("profiles").select("id, full_name, school_id, paid_at, onboarded_at, checked_in_at, avatar_url").limit(5000),
     supabase.from("schools").select("id, name, rule_group"),
   ]);
   const person = new Map((people ?? []).map((p) => [p.id as string, p as Member]));
@@ -33,9 +34,28 @@ export default async function TeamsPage({ searchParams }: { searchParams: Promis
     return { ...t, members, groups, flags };
   }).filter((t) => f === "incomplete" ? t.flags.length > 0 : f === "locked" ? !!t.locked_at : f === "open" ? !t.locked_at : true);
 
+  const placed = new Set((tm ?? []).map((x) => x.user_id as string));
+  const unassigned = (people ?? []).filter((p) => p.onboarded_at && !placed.has(p.id)).sort((a, b) => (a.full_name ?? "").localeCompare(b.full_name ?? "")).slice(0, 80) as Member[];
+  const openTeams = rows.filter((t) => !t.locked_at && t.members.length < 4).map((t) => ({ id: t.id as string, name: t.name as string, open: 4 - t.members.length }));
+
   return (
-    <div>
-      <PageHeader eyebrow="Teams" title="Every team">Teams that need attention are flagged. To move a student, use the Students page.</PageHeader>
+    <DragArea>
+      <PageHeader eyebrow="Teams" title="Every team">Drag a student onto a team to place them. Teams that need attention are flagged.</PageHeader>
+      {unassigned.length > 0 && (
+        <section className="panel mb-6">
+          <h2 className="font-heading text-lg font-semibold">No team yet <span className="text-muted">({unassigned.length})</span></h2>
+          <ul className="mt-3 grid gap-2 md:grid-cols-2">
+            {unassigned.map((m) => (
+              <Drag as="li" key={m.id} kind="person" id={m.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-line bg-card px-3 py-2 text-[15px]">
+                <Avatar url={m.avatar_url} name={m.full_name} size={28} />
+                <span className="min-w-0 flex-1 truncate">{m.full_name}<span className="text-muted"> · {school.get(m.school_id)?.name}</span></span>
+                {!m.paid_at && <span className="chip border-warn text-warn">Unpaid</span>}
+                <AdminAssign studentId={m.id} teams={openTeams} />
+              </Drag>
+            ))}
+          </ul>
+        </section>
+      )}
       <div className="mb-5 flex flex-wrap gap-2 text-sm">
         {[["", "All"], ["incomplete", "Needs attention"], ["open", "Not locked"], ["locked", "Locked"]].map(([k, l]) => (
           <Link key={k} href={k ? `/admin/teams?f=${k}` : "/admin/teams"} className={`chip px-3 py-1.5 ${(f ?? "") === k ? "border-ink bg-ink text-card" : ""}`}>{l}</Link>
@@ -44,7 +64,7 @@ export default async function TeamsPage({ searchParams }: { searchParams: Promis
       </div>
       <ul className="grid gap-4 lg:grid-cols-2">
         {rows.map((t) => (
-          <li key={t.id} className="panel space-y-4">
+          <Drop key={t.id} accept="person" mode="admin" targetId={t.id} disabled={!!t.locked_at || t.members.length >= 4} className="panel space-y-4">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h2 className="font-heading text-2xl font-semibold">{t.name}{t.locked_at && <span className="ml-2 rounded-full bg-ink px-2 py-0.5 align-middle text-[11px] uppercase tracking-wider text-card">Locked</span>}</h2>
@@ -69,10 +89,10 @@ export default async function TeamsPage({ searchParams }: { searchParams: Promis
               <ActionButton variant="secondary" action={adminSetTeamLock.bind(null, t.id, !t.locked_at)}>{t.locked_at ? "Unlock team" : "Lock team"}</ActionButton>
               <ActionButton variant="danger" confirm={`Dissolve ${t.name}? Its members go back to having no team.`} action={adminDissolveTeam.bind(null, t.id)}>Dissolve</ActionButton>
             </div>
-          </li>
+          </Drop>
         ))}
       </ul>
       {rows.length === 0 && <p className="panel text-[15px]">No teams match.</p>}
-    </div>
+    </DragArea>
   );
 }

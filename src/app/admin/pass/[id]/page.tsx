@@ -4,7 +4,7 @@ import Avatar from "@/components/Avatar";
 import { adminCheckIn, adminComp } from "@/app/admin/actions";
 import { requireAdmin, UUID } from "@/lib/admin";
 
-// Opened when an organizer scans a student's personal pass QR code with their phone.
+// Organizer-only status page for one student (manual check-in toggle). Not linked from anywhere; admin-gated by requireAdmin.
 export default async function PassPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!UUID.test(id)) notFound();
