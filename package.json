@@ -21,6 +21,7 @@
     "react-dom": "19.1.0",
     "resend": "^6.34.1",
     "server-only": "^0.0.1",
+    "skullet": "^0.0.3",
     "stripe": "^23.0.1"
   },
   "devDependencies": {

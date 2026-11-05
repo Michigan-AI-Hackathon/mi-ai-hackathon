@@ -3,6 +3,7 @@ import "@fontsource-variable/public-sans";
 import "@fontsource-variable/bricolage-grotesque";
 import "@fontsource-variable/jetbrains-mono";
 import "./globals.css";
+import { SkulletProvider } from "skullet/react";
 
 export const metadata: Metadata = {
   title: "Michigan AI Hackathon",
@@ -14,7 +15,7 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, view
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className="min-h-dvh">{children}</body>
+      <body className="min-h-dvh"><SkulletProvider mode="light" theme={{ animation: "shimmer" }}>{children}</SkulletProvider></body>
     </html>
   );
 }

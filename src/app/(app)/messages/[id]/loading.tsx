@@ -1,12 +1,11 @@
-import { SkPage, SkHeader, Sk } from "@/components/Skeleton";
+import { Sk } from "@/components/Skeleton";
 
+// Thread pane only; the conversation list stays on screen.
 export default function Loading() {
   return (
-    <SkPage>
-      <SkHeader />
-      <div className="space-y-3">
-        {[60, 40, 70, 50].map((w, i) => <Sk key={i} className={`h-12 ${i % 2 ? "ml-auto" : ""}`} />)}
-      </div>
-    </SkPage>
+    <div role="status" aria-busy="true" aria-label="Loading" className="space-y-3 p-4">
+      <Sk className="h-12 w-1/2" />
+      {[0, 1, 2, 3].map((i) => <Sk key={i} className={`h-12 w-2/3 ${i % 2 ? "ml-auto" : ""}`} />)}
+    </div>
   );
 }

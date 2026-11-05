@@ -1,5 +1,6 @@
 "use client";
-import { useActionState, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useActionState, useEffect, useState } from "react";
 import Avatar from "@/components/Avatar";
 import ChipPicker from "@/components/ChipPicker";
 import { saveProfile, type ActionResult } from "@/app/actions";
@@ -15,6 +16,12 @@ function Private() {
 
 export default function ProfileForm({ profile, schools, isNew, next }: { profile: Profile; schools: { id: number; name: string }[]; isNew: boolean; next?: string }) {
   const [state, action, pending] = useActionState<ActionResult, FormData>(saveProfile, null);
+  const router = useRouter();
+  // Editing an existing profile: after a save, go back to the page the user came from.
+  useEffect(() => {
+    if (!state?.ok || isNew) return;
+    if (window.history.length > 1) { router.back(); router.refresh(); } else router.replace("/dashboard");
+  }, [state, isNew, router]);
   const multiCampus = schools.length > 1;
   const [step, setStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
