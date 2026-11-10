@@ -71,3 +71,20 @@ export async function sendPlacementEmails(rows: { email: string; full_name: stri
     };
   }));
 }
+
+// Floating help button. Goes to the shared inbox in HELP_INBOX_EMAIL; reply-to is the student.
+export async function sendHelpRequest(r: { name: string; email: string; team: string | null; topic: string; message: string }) {
+  const to = process.env.HELP_INBOX_EMAIL;
+  if (!to) return { sent: 0, skipped: "HELP_INBOX_EMAIL not set" };
+  if (!process.env.RESEND_API_KEY) return { sent: 0, skipped: "RESEND_API_KEY not set" };
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const who = `${r.name || "Unknown"} <${r.email}>`;
+  const subject = `Help request${r.topic ? ` (${r.topic})` : ""} from ${r.name || r.email}`.slice(0, 150);
+  const { error } = await resend.emails.send({
+    from: FROM, to, replyTo: r.email, subject,
+    text: `From: ${who}\nTeam: ${r.team ?? "none"}\nTopic: ${r.topic || "none"}\n\n${r.message}`,
+    html: `<p><strong>From:</strong> ${esc(r.name || "Unknown")} &lt;${esc(r.email)}&gt;<br><strong>Team:</strong> ${esc(r.team ?? "none")}<br><strong>Topic:</strong> ${esc(r.topic || "none")}</p><div style="white-space:pre-wrap">${esc(r.message)}</div>`,
+  });
+  if (error) throw new Error(error.message);
+  return { sent: 1 };
+}

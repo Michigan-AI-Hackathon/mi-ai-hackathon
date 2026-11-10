@@ -19,6 +19,7 @@ export type Person = {
   checkedIn: boolean;
   ready: boolean;           // finished profile (and paid, when payment is required)
   teamId: string | null;
+  wantsPlacement?: boolean; // student asked organizers to place them on a team
 };
 export type Team = { id: string; name: string; track: string | null; locked: boolean };
 export type Settings = { teamSize: number; allowForce: boolean; trackWeight: number };

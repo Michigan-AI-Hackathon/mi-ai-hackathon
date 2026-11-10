@@ -3,4 +3,5 @@ export type Student = {
   study_area: string | null; skills: string[]; interests: string[]; tracks: string[]; bio: string | null;
   looking_for_team: boolean; linkedin_url: string | null; team_id: string | null; team_name: string | null; avatar_url: string | null;
   year?: string | null; // exposed by migration 0013; absent until it is applied
+  pronouns?: string | null; // migration 0015
 };

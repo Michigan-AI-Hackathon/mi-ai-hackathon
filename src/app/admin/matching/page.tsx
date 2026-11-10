@@ -3,12 +3,12 @@ import PageHeader from "@/components/PageHeader";
 import { requireAdmin } from "@/lib/admin";
 import { DEFAULT_SETTINGS, type Person, type Settings, type Team } from "@/lib/matching";
 
-type Prof = { id: string; full_name: string | null; school_id: number | null; tracks: string[] | null; skills: string[] | null; onboarded_at: string | null; paid_at: string | null; checked_in_at: string | null };
+type Prof = { id: string; full_name: string | null; school_id: number | null; tracks: string[] | null; skills: string[] | null; onboarded_at: string | null; paid_at: string | null; checked_in_at: string | null; placement_pref: string | null };
 
 export default async function MatchingPage() {
   const { supabase } = await requireAdmin();
   const [{ data: profs }, { data: tm }, { data: teams }, { data: schools }, { data: app }, { data: cfg }] = await Promise.all([
-    supabase.from("profiles").select("id, full_name, school_id, tracks, skills, onboarded_at, paid_at, checked_in_at").limit(5000),
+    supabase.from("profiles").select("id, full_name, school_id, tracks, skills, onboarded_at, paid_at, checked_in_at, placement_pref").limit(5000),
     supabase.from("team_members").select("team_id, user_id"),
     supabase.from("teams").select("id, name, track, locked_at").limit(1000),
     supabase.from("schools").select("id, name, rule_group"),
@@ -22,7 +22,7 @@ export default async function MatchingPage() {
     const s = school.get(p.school_id!);
     return {
       id: p.id, name: p.full_name ?? "No name", schoolId: p.school_id!, school: s?.name ?? "Unknown school", group: s?.rule_group ?? `school-${p.school_id}`,
-      tracks: p.tracks ?? [], skills: p.skills ?? [], checkedIn: !!p.checked_in_at,
+      tracks: p.tracks ?? [], skills: p.skills ?? [], checkedIn: !!p.checked_in_at, wantsPlacement: p.placement_pref === "place_me",
       ready: !!p.onboarded_at && (!needPay || !!p.paid_at), teamId: teamOf.get(p.id) ?? null,
     };
   });

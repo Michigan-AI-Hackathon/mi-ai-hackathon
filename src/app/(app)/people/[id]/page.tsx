@@ -32,7 +32,7 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
       <div className="mt-5 flex items-center gap-4 sm:gap-5">
         <Avatar url={s.avatar_url} name={s.full_name} size={80} />
         <div className="min-w-0">
-          <h1 className="font-heading text-3xl font-bold sm:text-5xl">{s.full_name}</h1>
+          <h1 className="font-heading text-3xl font-bold sm:text-5xl">{s.full_name}{s.pronouns && <span className="ml-3 align-middle text-lg font-normal text-muted">{s.pronouns}</span>}</h1>
           <p className="mt-1 text-lg text-muted">{s.school_name}</p>
           <p className={`mt-1 text-[15px] font-medium ${s.team_id ? "text-muted" : "text-ok"}`}>{status}</p>
         </div>
@@ -56,8 +56,11 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
         <Chips label="Tracks" items={s.tracks} strong />
         <Chips label="Skills" items={s.skills} />
         <Chips label="Interests" items={s.interests} />
-                {linkedin && (
-          <div><dt className="label">LinkedIn</dt><dd className="mt-1"><a href={linkedin} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">LinkedIn ↗</a></dd></div>
+        {linkedin && (
+          <div><a href={linkedin} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2.5 rounded-lg bg-[#0A66C2] px-5 py-3 text-[15px] font-semibold text-white transition-colors hover:bg-[#004182]">
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 110-4.12 2.06 2.06 0 010 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
+            LinkedIn
+          </a></div>
         )}
       </dl>
     </div>

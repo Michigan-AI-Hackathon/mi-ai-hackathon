@@ -46,9 +46,14 @@ export async function saveProfile(_prev: ActionResult, form: FormData): Promise<
     skills: list("skills"), interests: list("interests"),
     bio: String(form.get("bio") ?? "").trim().slice(0, 100) || null,
     looking_for_team: form.get("looking_for_team") === "on",
+    pronouns: String(form.get("pronouns") ?? "").trim().slice(0, 30) || null,
+    placement_pref: ["place_me", "own_team"].includes(String(form.get("placement_pref"))) ? String(form.get("placement_pref")) : null,
     linkedin_url: linkedin || null,
     avatar_url: avatar || null,
   };
+  const resume = String(form.get("resume_path") ?? "").trim();
+  if (resume && !resume.startsWith(`${user.id}/`) || resume.includes("..")) return { error: "That resume isn't valid. Upload it again." };
+  update.resume_path = resume || null;
   if (schoolRaw) update.school_id = Number(schoolRaw);
   if (!current?.school_id && !schoolRaw) return { error: "Pick your campus." };
   if (!current?.onboarded_at) update.onboarded_at = new Date().toISOString();

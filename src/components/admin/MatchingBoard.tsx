@@ -267,7 +267,7 @@ function PersonList({ list, empty }: { list: Person[]; empty: string }) {
     <ul className="grid gap-x-6 md:grid-cols-2">
       {list.slice(0, 200).map((p) => (
         <li key={p.id} className="border-b border-line py-3">
-          <p className="font-semibold">{p.name}{p.checkedIn && <span className="chip ml-2">In</span>}</p>
+          <p className="font-semibold">{p.name}{p.checkedIn && <span className="chip ml-2">In</span>}{p.wantsPlacement && <span className="chip ml-2 border-primary text-primary">Wants placement</span>}</p>
           <p className="text-sm text-muted">{p.school}{p.tracks.length ? ` · ${p.tracks.join(", ")}` : ""}</p>
           {p.skills.length > 0 && <p className="text-sm text-muted">{p.skills.join(", ")}</p>}
         </li>

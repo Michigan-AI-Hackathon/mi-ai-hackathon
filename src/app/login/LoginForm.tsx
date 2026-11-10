@@ -18,6 +18,7 @@ export default function LoginForm() {
   );
   const [busy, setBusy] = useState(false);
   const [showCode, setShowCode] = useState(false);
+  const [dest, setDest] = useState(next);
 
   async function sendCode(e: React.FormEvent) {
     e.preventDefault();
@@ -31,13 +32,22 @@ export default function LoginForm() {
       setBusy(false);
       return setError("We couldn't check your email right now. Try again in a minute.");
     }
+    // Judges added by an organizer may use a non-school email and land in the judge area.
+    let to = next;
+    let judge = false;
     if (!schools?.length) {
+      const { data: isJudge } = await supabase.rpc("judge_invited", { p_email: clean });
+      judge = !!isJudge;
+      if (judge && !params.get("next")) to = "/judge";
+    }
+    setDest(to);
+    if (!schools?.length && !judge) {
       setBusy(false);
       return setError(`@${clean.split("@")[1]} isn't on our list of Michigan schools. Use your school email. If your school is missing, email aihackathonumich@gmail.com.`);
     }
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: clean,
-      options: { shouldCreateUser: true, emailRedirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}` },
+      options: { shouldCreateUser: true, emailRedirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent(to)}` },
     });
     setBusy(false);
     if (otpError) console.error("Sending code failed:", otpError);
@@ -63,7 +73,7 @@ export default function LoginForm() {
     setBusy(false);
     if (verifyError) return setError("That code didn't work. Check the latest email we sent, or request a new code.");
     await claimSignupSource(supabase);
-    router.replace(next);
+    router.replace(dest);
     router.refresh();
   }
 

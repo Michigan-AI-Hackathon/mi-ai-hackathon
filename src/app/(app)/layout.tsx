@@ -3,6 +3,7 @@ import Avatar from "@/components/Avatar";
 import Logo from "@/components/Logo";
 import NavProgress from "@/components/NavProgress";
 import AppNav from "@/components/AppNav";
+import HelpButton from "@/components/HelpButton";
 import { devScenario } from "@/lib/dev-preview";
 import { requireStudent } from "@/lib/session";
 
@@ -35,7 +36,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <Logo href="/dashboard" />
           <div className="flex items-center gap-3 text-sm">
-            {profile.is_admin && <Link href="/admin" className="rounded-full bg-ink px-3 py-1 text-xs font-semibold text-card">Organizer</Link>}
+            {profile.is_admin && <Link href="/admin" className="inline-flex min-h-9 items-center rounded-full bg-ink px-4 text-sm font-semibold text-card">Organizer dashboard</Link>}
             <Link href="/onboarding" className="flex min-h-11 min-w-11 items-center gap-2 text-muted hover:text-ink"><Avatar url={profile.avatar_url} name={profile.full_name} size={28} /><span className="link-draw hidden sm:inline">{profile.full_name}</span></Link>
             <form action="/auth/signout" method="post"><button className="link-draw min-h-11 text-muted hover:text-ink">Sign out</button></form>
           </div>
@@ -43,6 +44,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <AppNav invites={invites ?? 0} unread={unread} teamId={membership?.team_id ?? null} />
       </header>
       <main className="mx-auto max-w-6xl px-4 pb-28 pt-6 sm:px-6 md:py-10">{children}</main>
+      <HelpButton />
     </div>
   );
 }

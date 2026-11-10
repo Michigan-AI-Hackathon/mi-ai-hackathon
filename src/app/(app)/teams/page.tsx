@@ -33,7 +33,7 @@ export default async function TeamsPage({ searchParams }: { searchParams: Promis
   const ids = (teams ?? []).map((t) => t.id);
   const memberIds = myTeamId && !ids.includes(myTeamId) ? [...ids, myTeamId] : ids;
   // Count from team_members (what the "full" check uses). The directory only lists finished, paid profiles.
-  const [{ data: rows }, { data: members }, { count: sentCount }] = await Promise.all([
+  const [{ data: rows }, { data: members }, { count: sentCount }, { data: joinableRaw }] = await Promise.all([
     ids.length ? supabase.from("team_members").select("team_id").in("team_id", ids) : Promise.resolve({ data: [] as { team_id: string }[] }),
     memberIds.length
       ? supabase.from("student_directory").select("id, full_name, school_name, team_id, avatar_url").in("team_id", memberIds)
@@ -41,12 +41,18 @@ export default async function TeamsPage({ searchParams }: { searchParams: Promis
     myTeamId
       ? supabase.from("invites").select("id", { count: "exact", head: true }).eq("team_id", myTeamId).eq("kind", "invite").eq("status", "pending").gt("expires_at", now)
       : Promise.resolve({ count: 0 }),
+    // Teams this student could actually join (same school rules request_to_join enforces).
+    myTeamId ? Promise.resolve({ data: [] as string[] }) : supabase.rpc("joinable_teams"),
   ]);
+  const joinable = new Set((joinableRaw ?? []) as string[]);
   const sizes = new Map<string, number>();
   (rows ?? []).forEach((r) => sizes.set(r.team_id, (sizes.get(r.team_id) ?? 0) + 1));
   const byTeam = new Map<string, Pick<Student, "id" | "full_name" | "school_name" | "avatar_url">[]>();
   (members ?? []).forEach((m) => byTeam.set(m.team_id!, [...(byTeam.get(m.team_id!) ?? []), m]));
-  const open = (teams ?? []).filter((t) => (sizes.get(t.id) ?? 0) < 4 && t.id !== myTeamId);
+  // Teams you can join come first, fullest first (goal: fill as many teams as possible). Full or not-a-fit teams go below, dimmed.
+  const canJoin = (id: string) => !myTeamId && joinable.has(id) && (sizes.get(id) ?? 0) < 4;
+  const open = (teams ?? []).filter((t) => t.id !== myTeamId && (myTeamId ? (sizes.get(t.id) ?? 0) < 4 : true))
+    .sort((a, b) => Number(canJoin(b.id)) - Number(canJoin(a.id)) || (sizes.get(b.id) ?? 0) - (sizes.get(a.id) ?? 0) || b.created_at.localeCompare(a.created_at));
   const people = (loose ?? []) as Student[];
 
   const mySize = myTeamId ? (await supabase.from("team_members").select("user_id", { count: "exact", head: true }).eq("team_id", myTeamId)).count ?? 0 : 0;
@@ -95,20 +101,22 @@ export default async function TeamsPage({ searchParams }: { searchParams: Promis
             {open.map((t) => {
               const m = byTeam.get(t.id) ?? [];
               const n = sizes.get(t.id) ?? 0;
+              const ok = canJoin(t.id);
+              const blocked = !myTeamId && !ok;
               return (
-                <li key={t.id} className="group panel tap-card rise relative flex flex-col gap-3">
+                <li key={t.id} className={`group panel tap-card rise relative flex flex-col gap-3 ${blocked ? "opacity-60" : ""}`}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <h3 className="font-heading text-2xl font-semibold"><Link href={`/teams/${t.id}`} className="text-primary underline-offset-4 after:absolute after:inset-0 after:z-0 after:content-[''] group-hover:underline">{t.name}</Link></h3>
                       {t.track && <span className="chip mt-2 w-fit">{t.track}</span>}
                     </div>
-                    <span className="mt-1 text-sm font-medium text-muted">{n}/4</span>
+                    <span className="mt-1 text-sm font-medium text-muted">{n >= 4 ? "Full" : blocked ? `${n}/4 · not a fit` : `${n}/4`}</span>
                   </div>
                   <TeamAvatars people={m} />
                   {m.length > 0 && <p className="truncate text-sm text-muted">{m.map((x) => x.full_name.split(" ")[0]).join(", ")}</p>}
                   {t.needs && <p className="line-clamp-2 text-[15px]"><span className="font-semibold">Looking for:</span> {t.needs}</p>}
                   <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-1">
-                    <div className="relative z-10">{!myTeamId && canAct && <ActionButton action={requestToJoin.bind(null, t.id)}>Ask to join</ActionButton>}</div>
+                    <div className="relative z-10">{ok && canAct && <ActionButton action={requestToJoin.bind(null, t.id)}>Ask to join</ActionButton>}</div>
                     <span aria-hidden className="ml-auto inline-flex min-h-11 items-center gap-1 rounded-md border border-line px-3 text-sm font-semibold text-primary transition-colors group-hover:border-primary group-hover:bg-primary/5">View team <span className="transition-transform group-hover:translate-x-0.5">›</span></span>
                   </div>
                 </li>

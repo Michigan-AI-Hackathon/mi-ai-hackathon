@@ -30,6 +30,9 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     supabase.from("team_members").select("team_id, teams(name, locked_at)").eq("user_id", profile.id).maybeSingle(),
     supabase.from("app_settings").select("lock_deadline, require_payment").single(),
   ]);
+  const { data: judgeMe } = await supabase.rpc("judge_me");
+  const { data: pts } = await supabase.rpc("my_points");
+  const { data: recent } = await supabase.from("point_ledger").select("id, label, points").eq("user_id", profile.id).order("created_at", { ascending: false }).limit(3);
   const team = membership?.teams as unknown as { name: string; locked_at: string | null } | null;
   let members: Student[] = [];
   if (membership) {
@@ -50,12 +53,28 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           </>}
     </div>
   ) : null;
+  const pointsCard = (
+    <div className="panel rise" style={{ "--i": 2 } as React.CSSProperties}>
+      <p className="eyebrow text-muted">Workshop points</p>
+      <p className="mt-2 font-heading text-4xl font-bold tabular-nums">{(pts as number | null) ?? 0}</p>
+      {(recent ?? []).length > 0
+        ? <ul className="mt-2 space-y-0.5 text-sm text-muted">{(recent ?? []).map((r) => <li key={r.id} className="flex justify-between gap-2"><span className="truncate">{r.label}</span><span className="font-mono">+{r.points}</span></li>)}</ul>
+        : <p className="mt-2 text-sm text-muted">Scan the QR codes at workshops to earn points.</p>}
+      <Link href="/points" className="link-draw mt-2 inline-block text-sm font-medium text-ink">History and prizes</Link>
+    </div>
+  );
   const first = profile.full_name?.split(" ")[0] ?? "there";
   const flags = [paid, !!team, !!team?.locked_at];
   const current = flags.findIndex((f) => !f);
 
   return (
     <div>
+      {(profile.is_admin || judgeMe) && (
+        <div className="mb-8 flex flex-wrap gap-3">
+          {profile.is_admin && <Link href="/admin" className="btn-primary px-6 py-3">Organizer dashboard</Link>}
+          {judgeMe && <Link href="/judge" className="btn-primary px-6 py-3">Judge dashboard</Link>}
+        </div>
+      )}
       <div className="rise mb-10 flex flex-wrap items-end justify-between gap-6">
         <div className="flex items-center gap-5">
           <div>
@@ -128,6 +147,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
             <p className="mt-6 border-t border-on-hero/15 pt-4 text-sm text-on-hero/65">{EVENT.dateLabel} · {EVENT.place}</p>
           </div>
           {pass && <div className="hidden lg:block">{pass}</div>}
+          {paid && pointsCard}
         </aside>
       </div>
     </div>

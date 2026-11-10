@@ -13,6 +13,7 @@ export default function StudentCard({ s, myTeamId, myTeamLocked, canAct, draggab
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <Link href={`/people/${s.id}`} draggable={false} className="font-heading text-xl font-semibold text-primary underline-offset-4 after:absolute after:inset-0 after:z-0 after:content-[''] group-hover:underline">{s.full_name}</Link>
+            {s.pronouns && <span className="-ml-1 mr-auto text-sm text-muted">({s.pronouns})</span>}
             <span className={`text-sm ${s.team_id ? "text-muted" : "font-medium text-ok"}`}>
               {s.team_id ? `On ${s.team_name}` : s.looking_for_team ? "Looking for a team" : "No team yet"}
             </span>

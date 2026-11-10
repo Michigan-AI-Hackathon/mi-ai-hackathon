@@ -83,6 +83,8 @@ and dissolve teams, mark a student paid (cash or scholarship), check people in, 
 5. **Unread-message emails:** in Supabase, Database > Extensions: enable `pg_cron` and `pg_net`. Edit the URL and secret in `0003_cron.sql`, run it.
 6. Make yourself an admin: `update public.profiles set is_admin = true where email = 'you@umich.edu';`
 
+Set `HELP_INBOX_EMAIL` to the shared inbox that should receive messages from the floating "?" help button (needs `RESEND_API_KEY` too). Requests are always saved in the `help_requests` table, even if the email fails.
+
 Local dev: `cp .env.example .env.local`, fill it in, `npm install`, `npm run dev`.
 Test Stripe webhooks locally with the Stripe CLI: `stripe listen --forward-to localhost:3000/api/stripe/webhook`.
 

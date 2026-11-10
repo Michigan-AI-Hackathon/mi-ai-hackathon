@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED = ["/dashboard", "/onboarding", "/people", "/teams", "/team", "/invites", "/messages", "/admin", "/checkin"];
+const PROTECTED = ["/dashboard", "/onboarding", "/people", "/teams", "/team", "/invites", "/messages", "/admin", "/checkin", "/points"];
 
 export async function updateSession(request: NextRequest) {
   // A sign-in link that lands on any page (e.g. Supabase fell back to the Site URL)

@@ -13,7 +13,7 @@ export default async function TeamsPage({ searchParams }: { searchParams: Promis
   const { f } = await searchParams;
   const { supabase } = await requireAdmin();
   const [{ data: teams }, { data: tm }, { data: people }, { data: schools }] = await Promise.all([
-    supabase.from("teams").select("id, name, track, locked_at, created_at").order("created_at", { ascending: false }).limit(500),
+    supabase.from("teams").select("id, name, track, locked_at, created_at, team_number").order("created_at", { ascending: false }).limit(500),
     supabase.from("team_members").select("team_id, user_id"),
     supabase.from("profiles").select("id, full_name, school_id, paid_at, onboarded_at, checked_in_at, avatar_url").limit(5000),
     supabase.from("schools").select("id, name, rule_group"),
@@ -67,7 +67,7 @@ export default async function TeamsPage({ searchParams }: { searchParams: Promis
           <Drop key={t.id} accept="person" mode="admin" targetId={t.id} disabled={!!t.locked_at || t.members.length >= 4} className="panel space-y-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 className="font-heading text-2xl font-semibold">{t.name}{t.locked_at && <span className="ml-2 rounded-full bg-ink px-2 py-0.5 align-middle text-[11px] uppercase tracking-wider text-card">Locked</span>}</h2>
+                <h2 className="font-heading text-2xl font-semibold">{t.team_number != null && <span className="mr-2 font-mono text-primary">#{t.team_number}</span>}{t.name}{t.locked_at && <span className="ml-2 rounded-full bg-ink px-2 py-0.5 align-middle text-[11px] uppercase tracking-wider text-card">Locked</span>}</h2>
                 <p className="text-sm text-muted">{t.track ?? "No track"} · {t.groups} {t.groups === 1 ? "school" : "schools"}</p>
               </div>
               <SeatPips filled={t.members.length} />
