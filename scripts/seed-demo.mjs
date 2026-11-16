@@ -1,12 +1,12 @@
 // Demo data for a LOCAL or STAGING Supabase project: organizers, students in every state, and teams of every size.
-// Safe to re-run (existing accounts are skipped). Never point this at the production project.
+// Safe to re-run (existing accounts are skipped). Seeding production needs ALLOW_PRODUCTION=yes; undo with scripts/remove-demo.mjs.
 //
 //   SUPABASE_URL=http://127.0.0.1:54321 SUPABASE_SERVICE_KEY=... DEMO_PASSWORD=... node scripts/seed-demo.mjs
 import { createClient } from "@supabase/supabase-js";
 
 const { SUPABASE_URL: url, SUPABASE_SERVICE_KEY: key, DEMO_PASSWORD: password } = process.env;
 if (!url || !key || !password) { console.error("Set SUPABASE_URL, SUPABASE_SERVICE_KEY and DEMO_PASSWORD."); process.exit(1); }
-if (/zdkihzeauilqvragfqvg/.test(url)) { console.error("Refusing to seed the production project."); process.exit(1); }
+if (/zdkihzeauilqvragfqvg/.test(url) && process.env.ALLOW_PRODUCTION !== "yes") { console.error("That is the production project. Set ALLOW_PRODUCTION=yes to seed it anyway (remove later with scripts/remove-demo.mjs)."); process.exit(1); }
 const sb = createClient(url, key, { auth: { persistSession: false } });
 
 const DAY = 86400000;
