@@ -85,3 +85,14 @@ export const INTEREST_SUGGESTIONS = [
   "Startups", "Social impact", "Sports", "Health", "Fintech", "Manufacturing", "Education",
   "Climate", "Gaming", "Creative tools",
 ];
+
+// "How did you hear about us?" Stored as the key; "organization" also asks which club.
+export const HEARD_FROM = [
+  ["friend", "A friend or classmate"],
+  ["organization", "Referral by a club or organization"],
+  ["social", "Social media"],
+  ["email", "Email or newsletter"],
+  ["class", "A class or professor"],
+  ["flyer", "Flyer or table at an event"],
+  ["other", "Somewhere else"],
+] as const;

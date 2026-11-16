@@ -7,7 +7,7 @@ import { safeNext } from "@/lib/safe-next";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { money, priceFor, type Sponsorship } from "@/lib/pricing";
-import { AVATAR_KEYS, EVENT, TRACKS, YEARS, currentFee } from "@/lib/config";
+import { AVATAR_KEYS, EVENT, HEARD_FROM, TRACKS, YEARS, currentFee } from "@/lib/config";
 
 export type ActionResult = { error?: string; ok?: string } | null;
 
@@ -37,14 +37,20 @@ export async function saveProfile(_prev: ActionResult, form: FormData): Promise<
   if (!(YEARS as readonly string[]).includes(year)) return { error: "Pick your year." };
   if (!study_area) return { error: "Pick what you study." };
   if (!tracks.length) return { error: "Pick at least one track." };
+  const heard = String(form.get("heard_from") ?? "");
+  const heardDetail = String(form.get("heard_detail") ?? "").trim().slice(0, 80);
+  if (heard && !HEARD_FROM.some(([k]) => k === heard)) return { error: "Pick how you heard about us." };
+  if (heard === "organization" && !heardDetail) return { error: "Tell us which club or organization." };
   const ownFolder = `/storage/v1/object/public/avatars/${user.id}/`;
   if (avatar && !AVATAR_KEYS.includes(avatar)
       && !(avatar.startsWith("https://") && avatar.includes(ownFolder))) return { error: "That picture isn't valid. Pick another." };
   if (linkedin && !/^https?:\/\/(www\.)?linkedin\.com\//i.test(linkedin)) return { error: "LinkedIn links start with https://linkedin.com/" };
 
   const { data: current } = await supabase.from("profiles").select("onboarded_at, school_id").eq("id", user.id).single();
+  if (!current?.onboarded_at && !heard) return { error: "Pick how you heard about us." };
   const update: Record<string, unknown> = {
     full_name, year, study_area, tracks,
+    heard_from: heard || null, heard_detail: heard === "organization" ? heardDetail : null,
     skills: list("skills"), interests: list("interests"),
     bio: String(form.get("bio") ?? "").trim().slice(0, 100) || null,
     looking_for_team: form.get("looking_for_team") === "on",
@@ -120,6 +126,19 @@ export async function startCheckout() {
     cancel_url: `${origin}/dashboard`,
   });
   redirect(session.url!);
+}
+
+// Free registration with an organizer-made code. The database checks the code and counts wrong guesses.
+export async function redeemPromo(_prev: ActionResult, form: FormData): Promise<ActionResult> {
+  const { user } = await getUserOrRedirect();
+  const code = String(form.get("code") ?? "").trim();
+  if (code.length < 4 || code.length > 24) return { error: "That code isn't valid." };
+  const { data, error } = await createAdminClient().rpc("redeem_promo", { p_user: user.id, p_code: code, p_base_cents: currentFee().cents });
+  if (error) { console.error("Promo redeem failed:", error.message); return { error: "Something went wrong. Try again." }; }
+  if (data === "throttled") return { error: "Too many tries. Wait a few minutes and try again." };
+  if (data === "invalid") return { error: "That code isn't valid." };
+  revalidatePath("/", "layout");
+  redirect("/dashboard?claimed=1");
 }
 
 // ---------------------------------------------------------------- teams

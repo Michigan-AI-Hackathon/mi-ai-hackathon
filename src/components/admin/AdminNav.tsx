@@ -8,7 +8,7 @@ const MAIN = [
   ["Judging", "/admin/judging"], ["Banners", "/admin/banners"], ["Email", "/admin/broadcast"], ["Help", "/admin/help"],
 ] as const;
 const MORE = [
-  ["Matching", "/admin/matching"], ["Points", "/admin/points"], ["Sponsors", "/admin/schools"], ["Sign-up QR codes", "/admin/events"], ["Audit log", "/admin/audit"],
+  ["Matching", "/admin/matching"], ["Points", "/admin/points"], ["Sponsors", "/admin/schools"], ["Promo codes", "/admin/promo"], ["Sign-up QR codes", "/admin/events"], ["Audit log", "/admin/audit"],
 ] as const;
 
 const on = (path: string, href: string) => path === href || path.startsWith(href + "/");

@@ -8,6 +8,7 @@ export type Profile = {
   looking_for_team: boolean; linkedin_url: string | null; onboarded_at: string | null; paid_at: string | null;
   is_admin: boolean; avatar_url: string | null; checked_in_at: string | null; signup_source: string | null;
   pronouns: string | null; resume_path: string | null; placement_pref: "place_me" | "own_team" | null; last_active_at: string | null;
+  heard_from: string | null; heard_detail: string | null;
 };
 
 // Signed-in student + their profile. Sends them to login/onboarding if needed.

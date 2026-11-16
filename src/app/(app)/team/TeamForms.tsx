@@ -12,10 +12,11 @@ export function TeamForm({ mode, initial }: { mode: "create" | "edit"; initial?:
         <input id="name" name="name" required minLength={2} maxLength={40} className="input" defaultValue={initial?.name} />
       </div>
       <div>
-        <label htmlFor="track" className="label">Track</label>
+        <label htmlFor="track" className="label">Team track</label>
         <select id="track" name="track" className="input" defaultValue={initial?.track ?? ""}>
           <option value="">Not decided yet</option>{TRACKS.map((t) => <option key={t}>{t}</option>)}
         </select>
+        <p className="hint mt-1">A team has one track. Members can be interested in several.</p>
       </div>
       <div className="sm:col-span-2">
         <label htmlFor="needs" className="label">Who you&apos;re looking for</label>

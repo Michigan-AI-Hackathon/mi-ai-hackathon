@@ -1,5 +1,6 @@
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
+import { RememberPeopleFilters } from "@/components/PeopleFilterMemory";
 import FilterToggle from "@/components/FilterToggle";
 import StudentCard from "@/components/StudentCard";
 import { currentFee, SKILL_SUGGESTIONS, TRACKS } from "@/lib/config";
@@ -36,6 +37,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
 
   return (
     <div>
+      <RememberPeopleFilters />
       <PageHeader title="Find teammates" />
       {!canAct && <p className="mt-4 rounded-lg bg-warn/10 px-4 py-3 text-[15px] text-warn">Pay the {currentFee().label} fee on your <Link href="/dashboard" className="underline">dashboard</Link> to invite or message.</p>}
 

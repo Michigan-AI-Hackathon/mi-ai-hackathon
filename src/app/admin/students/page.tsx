@@ -82,7 +82,7 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
                   <span className={`chip ${r.paid_at ? "border-ok text-ok" : "border-warn text-warn"}`}>{r.paid_at ? "Paid" : "Not paid"}</span>
                   <span className={`chip ${tid && (size.get(tid) ?? 0) >= 4 ? "border-ok text-ok" : ""}`}>{tid ? `Team: ${teamName.get(tid)} (${size.get(tid) ?? 0}/4)` : "No team"}</span>
                   <span className="chip" title={r.last_active_at ?? "No activity recorded yet"}>Active {ago(r.last_active_at)}</span>
-                  {r.placement_pref === "place_me" && <span className="chip border-primary text-primary">Wants placement</span>}
+                  {r.placement_pref === "place_me" && <span className="chip border-primary text-primary">Auto-matching</span>}
                   {r.placement_pref === "own_team" && <span className="chip">Picking own team</span>}
                   {r.resume_path && resumeUrl.get(r.resume_path) && <a href={resumeUrl.get(r.resume_path)} target="_blank" rel="noopener noreferrer" className="chip border-primary text-primary hover:underline">Resume</a>}
                   {r.checked_in_at && <span className="chip border-ink bg-ink text-card">Checked in</span>}

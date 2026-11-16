@@ -4,7 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import Avatar from "@/components/Avatar";
 import ChipPicker from "@/components/ChipPicker";
 import { saveProfile, type ActionResult } from "@/app/actions";
-import { AVATAR_PRESETS, INTEREST_SUGGESTIONS, SKILL_SUGGESTIONS, STUDY_AREAS, TRACKS, YEARS } from "@/lib/config";
+import { AVATAR_PRESETS, HEARD_FROM, INTEREST_SUGGESTIONS, SKILL_SUGGESTIONS, STUDY_AREAS, TRACKS, YEARS } from "@/lib/config";
 import DeleteAccount from "./DeleteAccount";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/session";
@@ -12,6 +12,10 @@ import type { Profile } from "@/lib/session";
 const STEPS = ["You", "Picture", "About you", "Team"] as const;
 const PRONOUN_OPTIONS = ["she/her", "he/him", "they/them"] as const;
 const RESUME_TYPES = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+
+function Req() {
+  return <span aria-hidden className="ml-0.5 text-danger">*</span>;
+}
 
 function Private() {
   return <span className="ml-2 rounded-full bg-paper px-2 py-0.5 text-xs font-medium text-muted ring-1 ring-line">Private</span>;
@@ -51,6 +55,8 @@ export default function ProfileForm({ profile, schools, isNew, next }: { profile
   const [pronChoice, setPronChoice] = useState(!initPron ? "" : (PRONOUN_OPTIONS as readonly string[]).includes(initPron) ? initPron : "other");
   const [pronOther, setPronOther] = useState((PRONOUN_OPTIONS as readonly string[]).includes(initPron) ? "" : initPron);
   const pronouns = pronChoice === "other" ? pronOther.trim() : pronChoice;
+  const [heard, setHeard] = useState(profile.heard_from ?? "");
+  const [heardDetail, setHeardDetail] = useState(profile.heard_detail ?? "");
   const [resume, setResume] = useState(profile.resume_path ?? "");
   const [resumeError, setResumeError] = useState("");
   const [resumeBusy, setResumeBusy] = useState(false);
@@ -64,6 +70,8 @@ export default function ProfileForm({ profile, schools, isNew, next }: { profile
       if (!year) return "Pick your year.";
       if (!studyChoice) return "Pick what you study.";
       if (!study) return "Tell us what you study.";
+      if (isNew && !heard) return "Pick how you heard about us.";
+      if (heard === "organization" && !heardDetail.trim()) return "Tell us which club or organization.";
     }
     if (s === 2 && !tracks.length) return "Pick at least one track.";
     if (s === 3 && !teamChoice) return "Pick how you want to get a team.";
@@ -146,12 +154,12 @@ export default function ProfileForm({ profile, schools, isNew, next }: { profile
             <h1 className="font-heading text-4xl font-bold sm:text-[2.75rem]">{isNew ? "Let’s set you up." : "Your profile"}</h1>
             <div className="mt-8 space-y-6">
               <div>
-                <label htmlFor="full_name" className="label">Your name</label>
+                <label htmlFor="full_name" className="label">Your name<Req /></label>
                 <input id="full_name" name="full_name" className="input py-3 text-lg" value={name} onChange={(e) => setName(e.target.value)}
                   maxLength={60} autoComplete="name" placeholder="First and last name" autoFocus />
               </div>
               <div>
-                <p className="label">School</p>
+                <p className="label">School<Req /></p>
                 {multiCampus ? (
                   <>
                     <div className="grid gap-2 sm:grid-cols-1" role="radiogroup" aria-label="Campus">
@@ -182,14 +190,14 @@ export default function ProfileForm({ profile, schools, isNew, next }: { profile
               </div>
               <div className="grid gap-6 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="year" className="label">Year<Private /></label>
+                  <label htmlFor="year" className="label">Year<Req /><Private /></label>
                   <select id="year" name="year" className="input" value={year} onChange={(e) => setYear(e.target.value)}>
                     <option value="" disabled>Pick your year</option>
                     {YEARS.map((y) => <option key={y}>{y}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="study_choice" className="label">What you study</label>
+                  <label htmlFor="study_choice" className="label">What you study<Req /></label>
                   <select id="study_choice" className="input" value={studyChoice} onChange={(e) => setStudyChoice(e.target.value)}>
                     <option value="" disabled>Pick your field</option>
                     {STUDY_AREAS.map((a) => <option key={a} value={a}>{a}</option>)}
@@ -199,6 +207,20 @@ export default function ProfileForm({ profile, schools, isNew, next }: { profile
                   <input type="hidden" name="study_area" value={study} />
                 </div>
               </div>
+              <div>
+                <label htmlFor="heard_from" className="label">How did you hear about us?{isNew && <Req />}</label>
+                <select id="heard_from" name="heard_from" className="input" value={heard} onChange={(e) => setHeard(e.target.value)}>
+                  <option value="" disabled={isNew}>{isNew ? "Pick one" : "Prefer not to say"}</option>
+                  {HEARD_FROM.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+                </select>
+                {heard === "organization" && (
+                  <div className="mt-3">
+                    <label htmlFor="heard_detail" className="label">Which club or organization?<Req /></label>
+                    <input id="heard_detail" name="heard_detail" className="input" value={heardDetail} onChange={(e) => setHeardDetail(e.target.value)} maxLength={80} placeholder="e.g. Michigan Data Science Team" />
+                  </div>
+                )}
+              </div>
+              <p className="hint"><span className="text-danger">*</span> Required</p>
             </div>
           </section>
 
@@ -236,7 +258,8 @@ export default function ProfileForm({ profile, schools, isNew, next }: { profile
             <h1 className="font-heading text-4xl font-bold sm:text-5xl">What are you passionate about?</h1>
             <div className="mt-8 space-y-7">
               <fieldset>
-                <legend className="label">Tracks</legend>
+                <legend className="label">Tracks<Req /></legend>
+                <p className="hint mb-2">Pick every track you&apos;d be excited to work on. If you want automated team matching, we&apos;ll place you on a team in one of your tracks. Each team has one track, so the teams you can join are in your tracks too.</p>
                 <div className="flex flex-wrap gap-2">
                   {TRACKS.map((t) => {
                     const on = tracks.includes(t);
@@ -276,11 +299,11 @@ export default function ProfileForm({ profile, schools, isNew, next }: { profile
 
           {/* Step 4 */}
           <section hidden={step !== 3} className="rise">
-            <h1 className="font-heading text-4xl font-bold sm:text-5xl">How will you get a team?</h1>
-            <p className="mt-3 text-[15px] text-muted">Teams are 4 people from at least 3 schools. You can change this any time from your profile.</p>
+            <h1 className="font-heading text-4xl font-bold sm:text-5xl">How will you get a team?<Req /></h1>
+            <p className="mt-3 text-[15px] text-muted">Teams are 4 people from at least 3 schools. You can change this any time from your profile. You don&apos;t need a team to register.</p>
             <div className="mt-8 space-y-3" role="radiogroup" aria-label="How you will get a team">
               {([
-                ["place_me", "Place me on a team", "I don't have a team. Organizers will put me on one with people who fit.", "We'll match you before the event."],
+                ["place_me", "Automated team matching", "I don't have a team. Match me with people who fit, using my tracks and skills.", "We'll match you before the event. You can still browse teams and join one yourself."],
                 ["own_team", "I'll find my own team", "I don't have a team yet, but I want to browse teams and invite people myself.", ""],
                 ["have", "I already have teammates", "I have people in mind. I'll create a team and invite them, or join theirs.", ""],
               ] as const).map(([v, title, body, note]) => {
@@ -300,6 +323,7 @@ export default function ProfileForm({ profile, schools, isNew, next }: { profile
                 );
               })}
             </div>
+            {isNew && <p className="mt-6 rounded-lg border border-line bg-card px-4 py-3 text-[15px]"><span className="font-semibold">Last step: pay the registration fee.</span> After you finish your profile, your dashboard takes you to payment. Paying is part of registration, and it secures your spot.</p>}
           </section>
 
           {(error || state?.error) && <p role="alert" className="mt-6 text-danger">{error ?? state?.error}</p>}
@@ -333,7 +357,7 @@ export default function ProfileForm({ profile, schools, isNew, next }: { profile
                 {skills.slice(0, 5).map((k) => <span key={k} className="chip">{k}</span>)}
               </div>
             ) : null}
-            <p className={`mt-6 border-t border-line pt-4 text-sm font-medium ${looking ? "text-ok" : "text-muted"}`}>{teamChoice === "place_me" ? "● Wants to be placed" : teamChoice === "own_team" ? "● Finding a team" : teamChoice === "have" ? "Has teammates in mind" : "Team: not chosen yet"}</p>
+            <p className={`mt-6 border-t border-line pt-4 text-sm font-medium ${looking ? "text-ok" : "text-muted"}`}>{teamChoice === "place_me" ? "● Automated matching" : teamChoice === "own_team" ? "● Finding a team" : teamChoice === "have" ? "Has teammates in mind" : "Team: not chosen yet"}</p>
           </div>
         </div>
       </aside>

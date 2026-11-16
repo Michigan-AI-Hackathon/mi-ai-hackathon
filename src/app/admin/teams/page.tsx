@@ -53,7 +53,7 @@ export default async function TeamsPage({ searchParams }: { searchParams: Promis
               <Drag as="li" key={m.id} kind="person" id={m.id} className="flex items-center gap-3 px-3 py-2 text-[14px]">
                 <Avatar url={m.avatar_url} name={m.full_name} size={24} />
                 <span className="min-w-0 flex-1 truncate font-medium">{m.full_name}<span className="font-normal text-muted"> · {school.get(m.school_id)?.name}</span></span>
-                {m.placement_pref === "place_me" && <span className="chip hidden border-primary text-primary sm:inline-flex">Wants placement</span>}
+                {m.placement_pref === "place_me" && <span className="chip hidden border-primary text-primary sm:inline-flex">Auto-matching</span>}
                 {!m.paid_at && <span className="chip border-warn text-warn">Unpaid</span>}
                 <AdminAssign studentId={m.id} teams={openTeams} />
               </Drag>

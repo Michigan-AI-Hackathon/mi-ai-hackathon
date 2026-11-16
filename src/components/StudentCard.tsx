@@ -22,10 +22,11 @@ export default function StudentCard({ s, myTeamId, myTeamLocked, canAct, draggab
         </div>
       </div>
       {s.bio && <p className="line-clamp-3 text-[15px] leading-relaxed">{s.bio}</p>}
-      {(s.tracks.length > 0 || s.skills.length > 0) && (
-        <div className="flex flex-wrap gap-1.5">
-          {s.tracks.map((t) => <span key={t} className="chip border-primary/30 bg-primary/5 font-medium">{t}</span>)}
-          {s.skills.slice(0, 6).map((k) => <span key={k} className="chip">{k}</span>)}
+      {(s.tracks.length > 0 || s.skills.length > 0 || s.interests.length > 0) && (
+        <div className="space-y-2">
+          {s.tracks.length > 0 && <div className="flex flex-wrap items-center gap-1.5"><span className="w-14 shrink-0 text-xs font-semibold uppercase tracking-wide text-muted">Tracks</span>{s.tracks.map((t) => <span key={t} className="chip border-primary/30 bg-primary/5 font-medium">{t}</span>)}</div>}
+          {s.skills.length > 0 && <div className="flex flex-wrap items-center gap-1.5"><span className="w-14 shrink-0 text-xs font-semibold uppercase tracking-wide text-muted">Skills</span>{s.skills.slice(0, 5).map((k) => <span key={k} className="chip">{k}</span>)}</div>}
+          {s.interests.length > 0 && <div className="flex flex-wrap items-center gap-1.5"><span className="w-14 shrink-0 text-xs font-semibold uppercase tracking-wide text-muted">Into</span>{s.interests.slice(0, 4).map((k) => <span key={k} className="chip border-dashed border-ink/40 bg-transparent italic">{k}</span>)}</div>}
         </div>
       )}
       <div className="mt-auto flex flex-wrap items-center justify-between gap-3">

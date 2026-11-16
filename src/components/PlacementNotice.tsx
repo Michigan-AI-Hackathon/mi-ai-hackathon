@@ -7,12 +7,12 @@ import { setPlacementPref } from "@/app/actions";
 export default function PlacementNotice() {
   return (
     <div className="rounded-xl border border-line bg-card p-4 text-[15px]" role="status">
-      <p className="font-semibold">You&apos;ve asked organizers to place you on a team.</p>
-      <p className="mt-1 text-muted">If you&apos;re still without a team when teams are matched, we&apos;ll put you on one. You can also choose right now.</p>
+      <p className="font-semibold">You&apos;re signed up for automated team matching.</p>
+      <p className="mt-1 text-muted">If you&apos;re still without a team when matching runs, we&apos;ll put you on one in your tracks. You can still look around and join a team yourself any time.</p>
       <div className="mt-3 flex flex-wrap items-start gap-2">
         <Link href="/teams" className="btn-primary">Browse teams</Link>
         <Link href="/people" className="btn-secondary">Find teammates</Link>
-        <ActionButton action={() => setPlacementPref("own_team")} variant="secondary">I&apos;ll pick my own team</ActionButton>
+        <ActionButton action={() => setPlacementPref("own_team")} variant="secondary">Turn off automated matching</ActionButton>
       </div>
     </div>
   );

@@ -38,9 +38,9 @@ const roster = [
 
 const steps = [
   { title: "Sign up", body: "Use your school email." },
-  { title: "Build your profile", body: `Add skills and a track. Pay the ${currentFee().label} fee.` },
-  { title: "Find teammates", body: "Search, invite, and message." },
-  { title: "Lock your team", body: "Locked teams keep their spot." },
+  { title: "Build your profile", body: "Add your skills and the tracks you like. Your tracks decide which teams we suggest or place you on." },
+  { title: "Pay the registration fee", body: `Paying is part of registering. ${currentFee().label}, and it secures your spot with or without a team.` },
+  { title: "Get a team", body: "Invite friends, join a team, or choose automated team matching. Locked teams keep their spot." },
 ];
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ deleted?: string }> }) {
@@ -53,16 +53,16 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
   const timeline = [
     { when: "Open now", title: "Registration", body: `Sign up and pay the ${fee.label} fee.`, state: "open" },
     { when: LOCK_DEADLINE_LABEL, title: "Team lock-in", body: "Locked teams are guaranteed a spot.", state: "tba" },
-    { when: "Before the event", title: "Solo matching", body: "We place students without a team.", state: "tba" },
+    { when: "Before the event", title: "Automated team matching", body: "We match students who don’t have a team.", state: "tba" },
     { when: EVENT.dateLabel, title: "The hackathon", body: `24 hours of building. ${EVENT.place}.`, state: "event" },
   ];
 
   const faqs: FaqItem[] = [
     { q: "Who can join?", a: <>Any student at a Michigan college or university. No CS background needed.</> },
-    { q: "What does it cost?", a: <>{EVENT.feeLabel}, non-refundable. Pay by card through Stripe. Coupon codes work at checkout.</> },
+    { q: "What does it cost?", a: <>{EVENT.feeLabel}, non-refundable. Pay by card through Stripe. Some schools cover part or all of the fee, and your price updates when you sign up with your school email. Travel help is covered under “Travel and costs” above.</> },
     { q: "What are the team rules?", a: <>4 people from at least 3 schools, max 2 per school. UM Ann Arbor, Dearborn and Flint count separately. The site checks this for you.</> },
     { q: "When do teams lock?", a: <>{LOCK_DEADLINE_LABEL}. A team can lock once all 4 members have paid.</> },
-    { q: "No team yet?", a: <>Register anyway. Ask to join a team, or we will match you.</> },
+    { q: "No team yet?", a: <>You don’t need one. Register and pay and you have a spot. Ask to join a team, or choose automated team matching and we will match you with people in your tracks.</> },
     { q: "Questions?", a: <>{EVENT.host}. Email <a className="link-draw font-medium text-ink" href={`mailto:${email}`}>{email}</a>.</> },
   ];
 
@@ -74,6 +74,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
           <Logo />
           <nav className="flex items-center gap-1 sm:gap-6">
             <div className="hidden items-center gap-6 text-[15px] font-medium text-muted md:flex">
+              <a href="#why" className="link-draw hover:text-ink">Why join</a>
               <a href="#rules" className="link-draw hover:text-ink">Teams</a>
               <a href="#timeline" className="link-draw hover:text-ink">Timeline</a>
               <a href="#register" className="link-draw hover:text-ink">Register</a>
@@ -109,7 +110,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
             <h1 className="rise mt-5 font-heading text-[2.9rem] font-bold leading-[0.95] sm:text-6xl lg:text-[6.25rem]" style={{ "--i": 2 } as React.CSSProperties}>
               Michigan&apos;s<br /><span className="hl whitespace-nowrap">24-hour</span> hackathon.
             </h1>
-            <div className="rise mt-10 flex flex-wrap items-center gap-4" style={{ "--i": 3 } as React.CSSProperties}>
+            <p className="rise mt-6 max-w-xl text-lg text-muted" style={{ "--i": 3 } as React.CSSProperties}>No team needed. Register and pay the fee and you have a spot. Bring teammates, or we&apos;ll match you with people from other schools.</p>
+            <div className="rise mt-8 flex flex-wrap items-center gap-4" style={{ "--i": 3 } as React.CSSProperties}>
               <Link href={user ? "/dashboard" : "/login"} className="btn-primary px-7 py-4 text-base">
                 {user ? "Go to your dashboard" : "Create your account"} <span aria-hidden>→</span>
               </Link>
@@ -144,6 +146,47 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
               <div className="mt-8 sm:mt-12"><Countdown to={EVENT.startsAt} /></div>
             </div>
           </Reveal>
+        </section>
+
+        {/* Why join (tracks live here, small) */}
+        <section id="why" className="scroll-mt-20 border-t border-line">
+          <div className="mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_1.2fr] lg:gap-16">
+            <Reveal>
+              <h2 className="font-heading text-4xl font-bold sm:text-5xl">Why join.</h2>
+              <p className="mt-6 max-w-md text-[17px] leading-relaxed text-muted">{EVENT.name} brings students from colleges across Michigan to Detroit for one weekend. You and three teammates build something real in 24 hours, around a problem from one of four tracks.</p>
+            </Reveal>
+            <Reveal i={1}>
+              <ul className="divide-y divide-line border-y border-line">
+                {[
+                  ["Build something real", "24 hours, a team of four, and a working project at the end."],
+                  ["Meet people outside your school", "Every team mixes at least 3 schools, so you work with students you wouldn’t meet otherwise."],
+                  ["No experience required", "Designers, business, health and engineering students all have a place on a team."],
+                  ["Meet industry partners", "Share your resume with partners if you choose to."],
+                ].map(([t, b]) => (
+                  <li key={t} className="py-4"><h3 className="font-heading text-lg font-semibold">{t}</h3><p className="mt-1 text-[15px] leading-relaxed text-muted">{b}</p></li>
+                ))}
+              </ul>
+              <p className="mt-6 text-sm font-semibold uppercase tracking-wide text-muted">Tracks</p>
+              <ul className="mt-2 flex flex-wrap gap-2">
+                {TRACKS.map((t) => <li key={t} className="chip border-ink/30 px-3 py-1.5 text-[15px] font-medium">{t}</li>)}
+              </ul>
+              <p className="mt-3 text-[14px] text-muted">Your tracks decide the teams we suggest, and the team we place you on if you choose automated matching. A team has one track.</p>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* Stipends, reimbursements, travel */}
+        <section id="travel" className="scroll-mt-20 border-t border-line bg-card/60">
+          <div className="mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_1.2fr] lg:gap-16">
+            <Reveal><h2 className="font-heading text-4xl font-bold sm:text-5xl">Travel and costs.</h2></Reveal>
+            <Reveal i={1}>
+              <ul className="divide-y divide-line border-y border-line text-[16px]">
+                <li className="py-4"><h3 className="font-heading text-lg font-semibold">Registration</h3><p className="mt-1 text-[15px] text-muted">{fee.label} per student. Some schools cover part or all of it (see the school-level discount note under the fee).</p></li>
+                <li className="py-4"><h3 className="font-heading text-lg font-semibold">Travel support</h3><p className="mt-1 text-[15px] text-muted">Help getting to Detroit will depend on where you are traveling from. We are finalizing stipends and reimbursements and will post the details here and email registered students.</p></li>
+                <li className="py-4"><h3 className="font-heading text-lg font-semibold">Questions about cost?</h3><p className="mt-1 text-[15px] text-muted">Cost shouldn’t stop you. Email <a className="link-draw font-medium text-ink" href={`mailto:${email}`}>{email}</a>.</p></li>
+              </ul>
+            </Reveal>
+          </div>
         </section>
 
         {/* Team rules */}
@@ -196,7 +239,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
         <section id="register" className="scroll-mt-20 border-t border-line">
           <div className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_1fr] lg:gap-16">
             <Reveal>
-              <h2 className="font-heading text-4xl font-bold sm:text-5xl">Four steps to a team.</h2>
+              <h2 className="font-heading text-4xl font-bold sm:text-5xl">How to register.</h2>
               <ol className="mt-8 divide-y divide-line border-y border-line">
                 {steps.map((s, i) => (
                   <li key={s.title} className="flex gap-5 py-5">
@@ -213,30 +256,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
                 <p className="mt-1 text-[15px] text-muted">per student · non-refundable{fee.earlyBird ? " · early-bird price" : ""}</p>
                 <ul className="mt-6 space-y-3 border-t border-line pt-6 text-[15px]">
                   <li className="flex gap-3"><Check />Pay by card through Stripe.</li>
-                                    <li className="flex gap-3"><Check />Paying unlocks teams and messaging.</li>
-                                  </ul>
+                                    <li className="flex gap-3"><Check />You don&apos;t need a team. Pay and your spot is secured.</li>
+                  <li className="flex gap-3"><Check />Paying unlocks teams and messaging.</li>
+                </ul>
+                <p className="mt-5 text-[13px] text-muted">*School-level discount: some schools cover part or all of the fee. If yours does, your price drops automatically after you sign up with your school email.</p>
                 <Link href={user ? "/dashboard" : "/login"} className="btn-primary mt-8 w-full py-3.5 text-[15px]">{user ? "Go to your dashboard" : "Create your account"} <span aria-hidden>→</span></Link>
               </div>
             </Reveal>
-          </div>
-        </section>
-
-        {/* Tracks */}
-        <section className="border-t border-line">
-          <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-            <Reveal><h2 className="font-heading text-4xl font-bold sm:text-5xl">Tracks</h2></Reveal>
-            <ul className="mt-10 border-t border-line">
-              {TRACKS.map((t, i) => (
-                <Reveal as="li" key={t} i={i}>
-                  <div className="group relative flex items-baseline gap-6 border-b border-line py-6 transition-[padding] duration-500 [transition-timing-function:var(--ease-out)] hover:pl-4">
-                    <span aria-hidden className="absolute inset-y-0 left-0 w-1 origin-top scale-y-0 bg-accent transition-transform duration-500 [transition-timing-function:var(--ease-out)] group-hover:scale-y-100" />
-                    <span className="w-8 font-heading text-sm text-muted">0{i + 1}</span>
-                    <span className="font-heading text-3xl font-semibold sm:text-5xl">{t}</span>
-                    <span aria-hidden className="ml-auto -translate-x-2 text-2xl opacity-0 transition-all duration-500 group-hover:translate-x-0 group-hover:opacity-100">→</span>
-                  </div>
-                </Reveal>
-              ))}
-            </ul>
           </div>
         </section>
 
@@ -260,7 +286,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
           <div>
             <p className="eyebrow text-muted">Explore</p>
             <ul className="mt-4 space-y-2.5 text-[15px]">
-              {[["#rules", "Team rules"], ["#timeline", "Timeline"], ["#register", "Registration"], ["#faq", "FAQ"]].map(([h, l]) => <li key={h}><a href={h} className="link-draw">{l}</a></li>)}
+              {[["#why", "Why join"], ["#travel", "Travel and costs"], ["#rules", "Team rules"], ["#timeline", "Timeline"], ["#register", "Registration"], ["#faq", "FAQ"]].map(([h, l]) => <li key={h}><a href={h} className="link-draw">{l}</a></li>)}
             </ul>
           </div>
           <div>

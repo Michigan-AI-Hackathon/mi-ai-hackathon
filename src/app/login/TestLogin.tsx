@@ -15,7 +15,7 @@ const DEMO_PASSWORD = process.env.NEXT_PUBLIC_DEMO_PASSWORD ?? "";
 const DEMO_ON = process.env.NEXT_PUBLIC_SHOW_DEMO_ACCOUNTS === "true" && DEMO_PASSWORD.length >= 6;
 const DEMO_ACCOUNTS = [
   { email: "organizer@umich.edu", label: "Organizer", note: "Admin dashboard, banners, matching" },
-  { email: "solo.omar@umich.edu", label: "Paid, no team", note: "Asked to be placed on a team" },
+  { email: "solo.omar@umich.edu", label: "Paid, no team", note: "Signed up for automated matching" },
   { email: "unpaid.tia@umich.edu", label: "Not paid yet", note: "Sees the pay / claim step" },
   { email: "ns.ava@umich.edu", label: "Team leader (locked)", note: "Northstar, 4 of 4" },
   { email: "ns.ben@msu.edu", label: "Teammate (locked)", note: "Not the leader" },

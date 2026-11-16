@@ -4,6 +4,7 @@ import Countdown from "@/components/Countdown";
 import PayButton from "@/components/PayButton";
 import Banners from "@/components/Banners";
 import PlacementNotice from "@/components/PlacementNotice";
+import PromoRedeem from "@/components/PromoRedeem";
 import { SeatPips } from "@/components/Seats";
 import { startCheckout } from "@/app/actions";
 import { EVENT, LOCK_DEADLINE_LABEL, currentFee } from "@/lib/config";
@@ -104,7 +105,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
       )}
 
       {sp.claimed && paid && (
-        <p role="status" className="mb-6 rounded-lg border border-accent/40 bg-accent/10 px-4 py-3 text-[15px]">You&apos;re registered. Your school covered your fee.</p>
+        <p role="status" className="mb-6 rounded-lg border border-accent/40 bg-accent/10 px-4 py-3 text-[15px]">You&apos;re registered. Your fee is taken care of.</p>
       )}
       {sp.sponsor === "changed" && !paid && (
         <p role="status" className="mb-6 rounded-lg border border-warn/40 bg-warn/10 px-4 py-3 text-[15px]">Your school&apos;s sponsorship changed, so we couldn&apos;t apply it. The price below is up to date.</p>
@@ -120,9 +121,14 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
             <h2 id="next-h" className="mt-1 font-heading text-2xl font-bold">{free ? "Your school covers your registration" : `Your school covers ${money(quote.subsidyCents)} of your registration`}</h2>
             <p className="mt-1 text-[15px] text-muted">{free ? <>The {money(quote.baseCents)} fee is paid for. You don&apos;t owe anything.</> : <>The fee is {money(quote.baseCents)}. You pay {money(quote.dueCents)}.</>}</p>
           </>) : (
-            <h2 id="next-h" className="mt-1 font-heading text-2xl font-bold">Pay the {fee.label} registration fee</h2>
+            <>
+              <h2 id="next-h" className="mt-1 font-heading text-2xl font-bold">Finish registering: pay the {fee.label} fee</h2>
+              <p className="mt-1 text-[15px] text-muted">Paying is the last step of registration. You don&apos;t need a team to get your spot.</p>
+            </>
           )}
           <form action={startCheckout} className="mt-4"><PayButton label={payLabel} pendingLabel={free ? "Claiming…" : undefined} /></form>
+          {!covered && <p className="mt-3 text-[13px] text-muted">*School-level discount: if your school sponsors students, your price drops automatically and shows here.</p>}
+          {!free && <PromoRedeem />}
         </>)}
         {current === 1 && (<>
           <h2 id="next-h" className="mt-1 font-heading text-2xl font-bold">Get on a team of 4</h2>
@@ -143,8 +149,8 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         <section className="panel rise p-6 sm:p-8" style={{ "--i": 2 } as React.CSSProperties}>
           <h2 className="mb-7 font-heading text-xl font-semibold">Checklist</h2>
           <ol>
-            <Step n={1} done={paid} current={current === 0} title={paid ? "Registration paid" : free ? "Claim your free spot" : `Pay the ${covered ? money(quote.dueCents) : fee.label} registration fee`}>
-              {paid ? <>Paid {new Date(profile.paid_at!).toLocaleDateString()}.</> : free ? <>Your school covers the fee.</> : <>Non-refundable.</>}
+            <Step n={1} done={paid} current={current === 0} title={paid ? "Registered" : free ? "Claim your free spot" : `Finish registration: pay ${covered ? money(quote.dueCents) : `the ${fee.label} fee`}`}>
+              {paid ? <>Paid {new Date(profile.paid_at!).toLocaleDateString()}. Your spot is secured, with or without a team.</> : free ? <>Your school covers the fee.</> : <>Non-refundable. {covered ? "" : "*School-level discounts apply automatically."}</>}
             </Step>
             <Step n={2} done={!!team} current={current === 1} title={team ? `On team ${team.name}` : "Join or create a team"}>
               {team && (
