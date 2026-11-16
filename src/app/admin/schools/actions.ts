@@ -45,3 +45,24 @@ export async function adminRemoveSponsorship(school: number, wholeGroup: boolean
   revalidatePath("/admin/schools");
   return { ok: "Sponsorship removed." };
 }
+
+// Sponsor by email ending ("umich.edu" or "@umich.edu"): every school that uses that ending gets the tier.
+export async function adminSponsorDomain(_prev: ActionResult, form: FormData): Promise<ActionResult> {
+  const { supabase } = await requireAdmin();
+  const domain = String(form.get("domain") ?? "").trim().toLowerCase().replace(/^.*@/, "");
+  const tier = String(form.get("tier") ?? "").trim().toUpperCase();
+  const capRaw = String(form.get("seat_cap") ?? "").trim();
+  const cap = capRaw === "" ? null : Number(capRaw);
+  if (!/^[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/.test(domain)) return { error: "Enter an email ending like umich.edu." };
+  if (!tier) return { error: "Pick a tier." };
+  if (cap !== null && (!Number.isInteger(cap) || cap < 0 || cap > 100000)) return { error: "Tickets must be a whole number, or blank for no limit." };
+  const { data: rows } = await supabase.from("school_domains").select("school_id").eq("domain", domain).limit(1);
+  const school = rows?.[0]?.school_id as number | undefined;
+  if (!school) return { error: `No school uses @${domain}.` };
+  const { data, error } = await supabase.rpc("admin_set_school_sponsorship", {
+    p_school: school, p_tier: tier, p_sponsor: String(form.get("sponsor") ?? "").slice(0, 80), p_seat_cap: cap, p_whole_group: true,
+  });
+  if (error) return { error: msg(error) };
+  revalidatePath("/admin/schools");
+  return { ok: `@${domain} is set (${data} ${(data as number) === 1 ? "school" : "schools"}).` };
+}

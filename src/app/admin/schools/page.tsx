@@ -1,6 +1,6 @@
 import ActionButton from "@/components/ActionButton";
 import PageHeader from "@/components/PageHeader";
-import { SponsorForm, TierForm, type Tier } from "@/components/admin/SponsorForms";
+import { DomainForm, SponsorForm, TierForm, type Tier } from "@/components/admin/SponsorForms";
 import { adminRemoveSponsorship } from "@/app/admin/schools/actions";
 import { requireAdmin } from "@/lib/admin";
 import { currentFee } from "@/lib/config";
@@ -16,6 +16,9 @@ export default async function SponsorsPage() {
   const { data } = await supabase.rpc("admin_sponsorship_data");
   const { tiers, schools } = (data ?? { tiers: [], schools: [] }) as { tiers: Tier[]; schools: School[] };
   const pct = new Map(tiers.map((t) => [t.code, t]));
+  const { data: doms } = await supabase.from("school_domains").select("domain, school_id");
+  const domainsOf = new Map<number, string[]>();
+  (doms ?? []).forEach((d) => domainsOf.set(d.school_id as number, [...(domainsOf.get(d.school_id as number) ?? []), d.domain as string]));
   const sponsored = schools.filter((s) => s.tier);
   const owed = sponsored.reduce((n, s) => n + s.subsidy_cents, 0);
   const students = sponsored.reduce((n, s) => n + s.paid, 0);
@@ -42,9 +45,14 @@ export default async function SponsorsPage() {
         <details><summary className="link-draw min-h-11 cursor-pointer py-2 text-sm font-medium">Add another tier</summary><div className="pt-2"><TierForm /></div></details>
       </section>
 
+      <section className="panel space-y-4" aria-labelledby="dom-h">
+        <h2 id="dom-h" className="font-heading text-xl font-semibold">By email ending</h2>
+        <p className="text-[15px] text-muted">Everyone who signs up with this email ending gets the tier. &ldquo;Tickets paid for&rdquo; is how many sponsored tickets were bought. Once they&apos;re used up, later students pay the full price. Leave it blank for no limit.</p>
+        <DomainForm tiers={tiers} />
+      </section>
+
       <section className="panel space-y-4" aria-labelledby="add-h">
-        <h2 id="add-h" className="font-heading text-xl font-semibold">Sponsor a school</h2>
-        <p className="text-[15px] text-muted">&ldquo;Tickets paid for&rdquo; is how many sponsored tickets the school bought. Once they&apos;re used up, later students pay the full price. Leave it blank for no limit.</p>
+        <h2 id="add-h" className="font-heading text-xl font-semibold">Or pick a school</h2>
         <SponsorForm tiers={tiers} schools={schools.filter((s) => !s.tier).map((s) => ({ id: s.id, name: s.name }))} />
       </section>
 
@@ -59,7 +67,7 @@ export default async function SponsorsPage() {
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <h3 className="font-heading text-lg font-semibold">{s.name}</h3>
-                      <p className="text-sm text-muted">Tier {s.tier}{t ? `: ${t.label}, covers ${t.pct}%` : ""}{s.sponsor ? ` · paid by ${s.sponsor}` : ""}</p>
+                      <p className="text-sm text-muted">{(domainsOf.get(s.id) ?? []).map((d) => `@${d}`).join(", ")}{domainsOf.get(s.id)?.length ? " · " : ""}Tier {s.tier}{t ? `: ${t.label}, covers ${t.pct}%` : ""}{s.sponsor ? ` · paid by ${s.sponsor}` : ""}</p>
                     </div>
                     <ActionButton variant="secondary" confirm={`Remove sponsorship from ${s.name}? Students who already registered keep their spot.`} action={adminRemoveSponsorship.bind(null, s.id, true)}>Remove</ActionButton>
                   </div>
