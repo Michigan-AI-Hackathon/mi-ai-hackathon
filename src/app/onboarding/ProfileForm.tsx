@@ -259,7 +259,7 @@ export default function ProfileForm({ profile, schools, isNew, next }: { profile
             <div className="mt-8 space-y-7">
               <fieldset>
                 <legend className="label">Tracks<Req /></legend>
-                <p className="hint mb-2">Pick every track you&apos;d be excited to work on. If you want automated team matching, we&apos;ll place you on a team in one of your tracks. Each team has one track, so the teams you can join are in your tracks too.</p>
+                <p className="hint mb-2">Pick the ones you like. We use them to match you with a team.</p>
                 <div className="flex flex-wrap gap-2">
                   {TRACKS.map((t) => {
                     const on = tracks.includes(t);
@@ -300,10 +300,10 @@ export default function ProfileForm({ profile, schools, isNew, next }: { profile
           {/* Step 4 */}
           <section hidden={step !== 3} className="rise">
             <h1 className="font-heading text-4xl font-bold sm:text-5xl">How will you get a team?<Req /></h1>
-            <p className="mt-3 text-[15px] text-muted">Teams are 4 people from at least 3 schools. You can change this any time from your profile. You don&apos;t need a team to register.</p>
+            <p className="mt-3 text-[15px] text-muted">Teams are 4 people from at least 3 schools. You can change this any time from your profile.</p>
             <div className="mt-8 space-y-3" role="radiogroup" aria-label="How you will get a team">
               {([
-                ["place_me", "Automated team matching", "I don't have a team. Match me with people who fit, using my tracks and skills.", "We'll match you before the event. You can still browse teams and join one yourself."],
+                ["place_me", "Automated team matching", "I don't have a team. Match me with people who fit.", "You can still browse and join a team yourself."],
                 ["own_team", "I'll find my own team", "I don't have a team yet, but I want to browse teams and invite people myself.", ""],
                 ["have", "I already have teammates", "I have people in mind. I'll create a team and invite them, or join theirs.", ""],
               ] as const).map(([v, title, body, note]) => {
@@ -323,7 +323,6 @@ export default function ProfileForm({ profile, schools, isNew, next }: { profile
                 );
               })}
             </div>
-            {isNew && <p className="mt-6 rounded-lg border border-line bg-card px-4 py-3 text-[15px]"><span className="font-semibold">Last step: pay the registration fee.</span> After you finish your profile, your dashboard takes you to payment. Paying is part of registration, and it secures your spot.</p>}
           </section>
 
           {(error || state?.error) && <p role="alert" className="mt-6 text-danger">{error ?? state?.error}</p>}

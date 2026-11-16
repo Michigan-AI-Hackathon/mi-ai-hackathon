@@ -23,7 +23,7 @@ export default async function SponsorsPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader eyebrow="Sponsors" title="School sponsorship">
+      <PageHeader eyebrow="School discounts" title="Free or discounted schools">
         Put a school on a tier and its students pay less, or nothing, when they register. The discount comes from the school on each student&apos;s verified email, so it can&apos;t be claimed by someone from another school.
       </PageHeader>
 

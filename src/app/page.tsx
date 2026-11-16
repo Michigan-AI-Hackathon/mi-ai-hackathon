@@ -38,9 +38,9 @@ const roster = [
 
 const steps = [
   { title: "Sign up", body: "Use your school email." },
-  { title: "Build your profile", body: "Add your skills and the tracks you like. Your tracks decide which teams we suggest or place you on." },
-  { title: "Pay the registration fee", body: `Paying is part of registering. ${currentFee().label}, and it secures your spot with or without a team.` },
-  { title: "Get a team", body: "Invite friends, join a team, or choose automated team matching. Locked teams keep their spot." },
+  { title: "Build your profile", body: "Add your skills and the tracks you like." },
+  { title: "Pay the registration fee", body: `${currentFee().label}. This secures your spot.` },
+  { title: "Get a team", body: "Invite friends, join a team, or choose automated team matching." },
 ];
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ deleted?: string }> }) {
@@ -59,10 +59,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
 
   const faqs: FaqItem[] = [
     { q: "Who can join?", a: <>Any student at a Michigan college or university. No CS background needed.</> },
-    { q: "What does it cost?", a: <>{EVENT.feeLabel}, non-refundable. Pay by card through Stripe. Some schools cover part or all of the fee, and your price updates when you sign up with your school email. Travel help is covered under “Travel and costs” above.</> },
+    { q: "What does it cost?", a: <>{EVENT.feeLabel}, non-refundable. Pay by card through Stripe. Some schools cover part or all of it. See also Travel and costs above.</> },
     { q: "What are the team rules?", a: <>4 people from at least 3 schools, max 2 per school. UM Ann Arbor, Dearborn and Flint count separately. The site checks this for you.</> },
     { q: "When do teams lock?", a: <>{LOCK_DEADLINE_LABEL}. A team can lock once all 4 members have paid.</> },
-    { q: "No team yet?", a: <>You don’t need one. Register and pay and you have a spot. Ask to join a team, or choose automated team matching and we will match you with people in your tracks.</> },
+    { q: "No team yet?", a: <>You don’t need one. Pay the fee and you have a spot. Ask to join a team, or choose automated team matching.</> },
     { q: "Questions?", a: <>{EVENT.host}. Email <a className="link-draw font-medium text-ink" href={`mailto:${email}`}>{email}</a>.</> },
   ];
 
@@ -110,7 +110,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
             <h1 className="rise mt-5 font-heading text-[2.9rem] font-bold leading-[0.95] sm:text-6xl lg:text-[6.25rem]" style={{ "--i": 2 } as React.CSSProperties}>
               Michigan&apos;s<br /><span className="hl whitespace-nowrap">24-hour</span> hackathon.
             </h1>
-            <p className="rise mt-6 max-w-xl text-lg text-muted" style={{ "--i": 3 } as React.CSSProperties}>No team needed. Register and pay the fee and you have a spot. Bring teammates, or we&apos;ll match you with people from other schools.</p>
+            <p className="rise mt-6 max-w-xl text-lg text-muted" style={{ "--i": 3 } as React.CSSProperties}>No team needed. Pay the fee and you have a spot.</p>
             <div className="rise mt-8 flex flex-wrap items-center gap-4" style={{ "--i": 3 } as React.CSSProperties}>
               <Link href={user ? "/dashboard" : "/login"} className="btn-primary px-7 py-4 text-base">
                 {user ? "Go to your dashboard" : "Create your account"} <span aria-hidden>→</span>
@@ -153,7 +153,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
           <div className="mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_1.2fr] lg:gap-16">
             <Reveal>
               <h2 className="font-heading text-4xl font-bold sm:text-5xl">Why join.</h2>
-              <p className="mt-6 max-w-md text-[17px] leading-relaxed text-muted">{EVENT.name} brings students from colleges across Michigan to Detroit for one weekend. You and three teammates build something real in 24 hours, around a problem from one of four tracks.</p>
+              <p className="mt-6 max-w-md text-[17px] leading-relaxed text-muted">Students from colleges across Michigan meet in Detroit and build in teams of four for 24 hours, in one of four tracks.</p>
             </Reveal>
             <Reveal i={1}>
               <ul className="divide-y divide-line border-y border-line">
@@ -170,7 +170,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
               <ul className="mt-2 flex flex-wrap gap-2">
                 {TRACKS.map((t) => <li key={t} className="chip border-ink/30 px-3 py-1.5 text-[15px] font-medium">{t}</li>)}
               </ul>
-              <p className="mt-3 text-[14px] text-muted">Your tracks decide the teams we suggest, and the team we place you on if you choose automated matching. A team has one track.</p>
+              <p className="mt-3 text-[14px] text-muted">Each team has one track.</p>
             </Reveal>
           </div>
         </section>
@@ -181,9 +181,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
             <Reveal><h2 className="font-heading text-4xl font-bold sm:text-5xl">Travel and costs.</h2></Reveal>
             <Reveal i={1}>
               <ul className="divide-y divide-line border-y border-line text-[16px]">
-                <li className="py-4"><h3 className="font-heading text-lg font-semibold">Registration</h3><p className="mt-1 text-[15px] text-muted">{fee.label} per student. Some schools cover part or all of it (see the school-level discount note under the fee).</p></li>
-                <li className="py-4"><h3 className="font-heading text-lg font-semibold">Travel support</h3><p className="mt-1 text-[15px] text-muted">Help getting to Detroit will depend on where you are traveling from. We are finalizing stipends and reimbursements and will post the details here and email registered students.</p></li>
-                <li className="py-4"><h3 className="font-heading text-lg font-semibold">Questions about cost?</h3><p className="mt-1 text-[15px] text-muted">Cost shouldn’t stop you. Email <a className="link-draw font-medium text-ink" href={`mailto:${email}`}>{email}</a>.</p></li>
+                <li className="py-4"><h3 className="font-heading text-lg font-semibold">Registration</h3><p className="mt-1 text-[15px] text-muted">{fee.label} per student. Some schools cover part or all of it.</p></li>
+                <li className="py-4"><h3 className="font-heading text-lg font-semibold">Travel support</h3><p className="mt-1 text-[15px] text-muted">Stipends and reimbursements depend on where you travel from. Details coming soon.</p></li>
               </ul>
             </Reveal>
           </div>
@@ -256,10 +255,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
                 <p className="mt-1 text-[15px] text-muted">per student · non-refundable{fee.earlyBird ? " · early-bird price" : ""}</p>
                 <ul className="mt-6 space-y-3 border-t border-line pt-6 text-[15px]">
                   <li className="flex gap-3"><Check />Pay by card through Stripe.</li>
-                                    <li className="flex gap-3"><Check />You don&apos;t need a team. Pay and your spot is secured.</li>
+                                    <li className="flex gap-3"><Check />No team needed to get your spot.</li>
                   <li className="flex gap-3"><Check />Paying unlocks teams and messaging.</li>
                 </ul>
-                <p className="mt-5 text-[13px] text-muted">*School-level discount: some schools cover part or all of the fee. If yours does, your price drops automatically after you sign up with your school email.</p>
+                <p className="mt-5 text-[13px] text-muted">*School-level discount: some schools cover part or all of the fee. Your price updates when you sign up with your school email.</p>
                 <Link href={user ? "/dashboard" : "/login"} className="btn-primary mt-8 w-full py-3.5 text-[15px]">{user ? "Go to your dashboard" : "Create your account"} <span aria-hidden>→</span></Link>
               </div>
             </Reveal>

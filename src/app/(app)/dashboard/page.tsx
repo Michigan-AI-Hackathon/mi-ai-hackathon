@@ -122,12 +122,12 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
             <p className="mt-1 text-[15px] text-muted">{free ? <>The {money(quote.baseCents)} fee is paid for. You don&apos;t owe anything.</> : <>The fee is {money(quote.baseCents)}. You pay {money(quote.dueCents)}.</>}</p>
           </>) : (
             <>
-              <h2 id="next-h" className="mt-1 font-heading text-2xl font-bold">Finish registering: pay the {fee.label} fee</h2>
-              <p className="mt-1 text-[15px] text-muted">Paying is the last step of registration. You don&apos;t need a team to get your spot.</p>
+              <h2 id="next-h" className="mt-1 font-heading text-2xl font-bold">Pay the {fee.label} registration fee</h2>
+              <p className="mt-1 text-[15px] text-muted">No team needed to get your spot.</p>
             </>
           )}
           <form action={startCheckout} className="mt-4"><PayButton label={payLabel} pendingLabel={free ? "Claiming…" : undefined} /></form>
-          {!covered && <p className="mt-3 text-[13px] text-muted">*School-level discount: if your school sponsors students, your price drops automatically and shows here.</p>}
+          {!covered && <p className="mt-3 text-[13px] text-muted">*School-level discount applied automatically if your school covers it.</p>}
           {!free && <PromoRedeem />}
         </>)}
         {current === 1 && (<>
@@ -149,8 +149,8 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         <section className="panel rise p-6 sm:p-8" style={{ "--i": 2 } as React.CSSProperties}>
           <h2 className="mb-7 font-heading text-xl font-semibold">Checklist</h2>
           <ol>
-            <Step n={1} done={paid} current={current === 0} title={paid ? "Registered" : free ? "Claim your free spot" : `Finish registration: pay ${covered ? money(quote.dueCents) : `the ${fee.label} fee`}`}>
-              {paid ? <>Paid {new Date(profile.paid_at!).toLocaleDateString()}. Your spot is secured, with or without a team.</> : free ? <>Your school covers the fee.</> : <>Non-refundable. {covered ? "" : "*School-level discounts apply automatically."}</>}
+            <Step n={1} done={paid} current={current === 0} title={paid ? "Registration paid" : free ? "Claim your free spot" : `Pay the ${covered ? money(quote.dueCents) : fee.label} registration fee`}>
+              {paid ? <>Paid {new Date(profile.paid_at!).toLocaleDateString()}.</> : free ? <>Your school covers the fee.</> : <>Non-refundable.</>}
             </Step>
             <Step n={2} done={!!team} current={current === 1} title={team ? `On team ${team.name}` : "Join or create a team"}>
               {team && (
