@@ -4,7 +4,8 @@ import { useActionState, useEffect, useState } from "react";
 import Avatar from "@/components/Avatar";
 import ChipPicker from "@/components/ChipPicker";
 import { saveProfile, type ActionResult } from "@/app/actions";
-import { AVATAR_PRESETS, INTEREST_SUGGESTIONS, SKILL_SUGGESTIONS, TRACKS, YEARS } from "@/lib/config";
+import { AVATAR_PRESETS, INTEREST_SUGGESTIONS, SKILL_SUGGESTIONS, STUDY_AREAS, TRACKS, YEARS } from "@/lib/config";
+import DeleteAccount from "./DeleteAccount";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/session";
 
@@ -31,15 +32,21 @@ export default function ProfileForm({ profile, schools, isNew, next }: { profile
   const [name, setName] = useState(profile.full_name ?? "");
   const [schoolId, setSchoolId] = useState(String(profile.school_id ?? (multiCampus ? "" : schools[0]?.id ?? "")));
   const [year, setYear] = useState(profile.year ?? "");
-  const [study, setStudy] = useState(profile.study_area ?? "");
+  const initStudy = profile.study_area ?? "";
+  const [studyChoice, setStudyChoice] = useState(!initStudy ? "" : (STUDY_AREAS as readonly string[]).includes(initStudy) ? initStudy : "other");
+  const [studyOther, setStudyOther] = useState((STUDY_AREAS as readonly string[]).includes(initStudy) ? "" : initStudy);
+  const study = studyChoice === "other" ? studyOther.trim() : studyChoice;
   const [avatar, setAvatar] = useState(profile.avatar_url ?? "");
   const [avatarError, setAvatarError] = useState("");
   const [uploading, setUploading] = useState(false);
   const [tracks, setTracks] = useState<string[]>(profile.tracks);
   const [skills, setSkills] = useState<string[]>(profile.skills);
   const [bio, setBio] = useState(profile.bio ?? "");
-  const [looking, setLooking] = useState(profile.looking_for_team); // true = "Not on a team"
-  const [placement, setPlacement] = useState<string>(profile.placement_pref ?? "");
+  // One question: how will you get a team? "have" = they already have teammates in mind (so not looking).
+  const [teamChoice, setTeamChoice] = useState<"place_me" | "own_team" | "have" | "">(
+    !profile.looking_for_team ? "have" : profile.placement_pref ?? "");
+  const looking = teamChoice !== "have";
+  const placement = teamChoice === "place_me" || teamChoice === "own_team" ? teamChoice : "";
   const initPron = profile.pronouns ?? "";
   const [pronChoice, setPronChoice] = useState(!initPron ? "" : (PRONOUN_OPTIONS as readonly string[]).includes(initPron) ? initPron : "other");
   const [pronOther, setPronOther] = useState((PRONOUN_OPTIONS as readonly string[]).includes(initPron) ? "" : initPron);
@@ -55,9 +62,11 @@ export default function ProfileForm({ profile, schools, isNew, next }: { profile
       if (name.trim().length < 2) return "Add your name.";
       if (multiCampus && !schoolId) return "Pick your campus.";
       if (!year) return "Pick your year.";
-      if (!study.trim()) return "Add what you study.";
+      if (!studyChoice) return "Pick what you study.";
+      if (!study) return "Tell us what you study.";
     }
     if (s === 2 && !tracks.length) return "Pick at least one track.";
+    if (s === 3 && !teamChoice) return "Pick how you want to get a team.";
     return null;
   }
   function go(to: number) {
@@ -148,8 +157,9 @@ export default function ProfileForm({ profile, schools, isNew, next }: { profile
                     <div className="grid gap-2 sm:grid-cols-1" role="radiogroup" aria-label="Campus">
                       {schools.map((s) => (
                         <button type="button" key={s.id} role="radio" aria-checked={String(s.id) === schoolId} onClick={() => setSchoolId(String(s.id))}
-                          className={`rounded-lg border px-4 py-3 text-left text-[15px] transition-all ${String(s.id) === schoolId ? "border-ink bg-card shadow-[3px_3px_0_var(--color-text)]" : "border-line bg-card hover:border-ink"}`}>
+                          className={`flex items-center justify-between gap-3 rounded-lg border px-4 py-3 text-left text-[15px] transition-all ${String(s.id) === schoolId ? "border-ink bg-ink font-semibold text-card shadow-[3px_3px_0_var(--color-accent)]" : "border-line bg-card hover:border-ink"}`}>
                           {s.name}
+                          {String(s.id) === schoolId && <span aria-hidden className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-card text-ink"><svg viewBox="0 0 20 20" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m4.5 10.5 3.5 3.5 7.5-8" /></svg></span>}
                         </button>
                       ))}
                     </div>
@@ -179,8 +189,14 @@ export default function ProfileForm({ profile, schools, isNew, next }: { profile
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="study_area" className="label">What you study</label>
-                  <input id="study_area" name="study_area" className="input" placeholder="e.g. Nursing, Finance" value={study} onChange={(e) => setStudy(e.target.value)} maxLength={80} />
+                  <label htmlFor="study_choice" className="label">What you study</label>
+                  <select id="study_choice" className="input" value={studyChoice} onChange={(e) => setStudyChoice(e.target.value)}>
+                    <option value="" disabled>Pick your field</option>
+                    {STUDY_AREAS.map((a) => <option key={a} value={a}>{a}</option>)}
+                    <option value="other">Other…</option>
+                  </select>
+                  {studyChoice === "other" && <input className="input mt-2" aria-label="What you study" value={studyOther} onChange={(e) => setStudyOther(e.target.value)} maxLength={80} placeholder="e.g. Linguistics" />}
+                  <input type="hidden" name="study_area" value={study} />
                 </div>
               </div>
             </div>
@@ -260,30 +276,29 @@ export default function ProfileForm({ profile, schools, isNew, next }: { profile
 
           {/* Step 4 */}
           <section hidden={step !== 3} className="rise">
-            <h1 className="font-heading text-4xl font-bold sm:text-5xl">Your team</h1>
-            <div className="mt-8 space-y-7">
-              <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Team status">
-                {([
-                  [true, "Not on a team", <svg key="s" viewBox="0 0 48 48" className="h-12 w-12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="24" cy="16" r="7" /><path d="M10 40c0-8 6-13 14-13s14 5 14 13" /></svg>],
-                  [false, "On a team", <svg key="t" viewBox="0 0 48 48" className="h-12 w-12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="24" cy="14" r="6" /><circle cx="10" cy="20" r="5" /><circle cx="38" cy="20" r="5" /><path d="M13 40c0-7 5-11 11-11s11 4 11 11M2 36c0-5 3-8 8-8M46 36c0-5-3-8-8-8" /></svg>],
-                ] as const).map(([v, l, icon]) => (
-                  <button type="button" key={l} role="radio" aria-checked={looking === v} onClick={() => setLooking(v)}
-                    className={`flex flex-col items-center gap-3 rounded-xl border px-4 py-6 text-[15px] font-semibold transition-all ${looking === v ? "border-ink bg-card text-primary shadow-[3px_3px_0_var(--color-text)]" : "border-line bg-card text-muted hover:border-ink"}`}>{icon}{l}</button>
-                ))}
-              </div>
-              {looking && (
-                <div>
-                  <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Team placement">
-                    {([
-                      ["place_me", "Place me", <svg key="p" viewBox="0 0 48 48" className="h-12 w-12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M8 24h20M20 14l10 10-10 10" /><rect x="32" y="12" width="9" height="24" rx="3" /></svg>],
-                      ["own_team", "I’ll pick", <svg key="o" viewBox="0 0 48 48" className="h-12 w-12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="21" cy="21" r="11" /><path d="M29 29l11 11" /></svg>],
-                    ] as const).map(([v, l, icon]) => (
-                      <button type="button" key={v} role="radio" aria-checked={placement === v} onClick={() => setPlacement(v)}
-                        className={`flex flex-col items-center gap-3 rounded-xl border px-4 py-6 text-[15px] font-semibold transition-all ${placement === v ? "border-ink bg-card text-primary shadow-[3px_3px_0_var(--color-text)]" : "border-line bg-card text-muted hover:border-ink"}`}>{icon}{l}</button>
-                    ))}
-                  </div>
-                </div>
-              )}
+            <h1 className="font-heading text-4xl font-bold sm:text-5xl">How will you get a team?</h1>
+            <p className="mt-3 text-[15px] text-muted">Teams are 4 people from at least 3 schools. You can change this any time from your profile.</p>
+            <div className="mt-8 space-y-3" role="radiogroup" aria-label="How you will get a team">
+              {([
+                ["place_me", "Place me on a team", "I don't have a team. Organizers will put me on one with people who fit.", "We'll match you before the event."],
+                ["own_team", "I'll find my own team", "I don't have a team yet, but I want to browse teams and invite people myself.", ""],
+                ["have", "I already have teammates", "I have people in mind. I'll create a team and invite them, or join theirs.", ""],
+              ] as const).map(([v, title, body, note]) => {
+                const on = teamChoice === v;
+                return (
+                  <button type="button" key={v} role="radio" aria-checked={on} onClick={() => setTeamChoice(v)}
+                    className={`flex w-full items-start gap-4 rounded-xl border px-5 py-4 text-left transition-all ${on ? "border-ink bg-ink text-card shadow-[3px_3px_0_var(--color-accent)]" : "border-line bg-card hover:border-ink"}`}>
+                    <span aria-hidden className={`mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 ${on ? "border-card bg-card text-ink" : "border-ink/40"}`}>
+                      {on && <svg viewBox="0 0 20 20" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m4.5 10.5 3.5 3.5 7.5-8" /></svg>}
+                    </span>
+                    <span>
+                      <span className="block font-heading text-lg font-semibold">{title}</span>
+                      <span className={`mt-0.5 block text-[15px] ${on ? "text-card/80" : "text-muted"}`}>{body}</span>
+                      {note && <span className={`mt-1 block text-sm font-medium ${on ? "text-accent" : "text-primary"}`}>{note}</span>}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </section>
 
@@ -296,6 +311,7 @@ export default function ProfileForm({ profile, schools, isNew, next }: { profile
             {showSubmit && <button className="btn-primary px-6 py-3 text-[15px]" disabled={pending}>{pending ? "Saving…" : isNew ? "Finish" : "Save changes"}</button>}
           </div>
         </form>
+        {!isNew && !profile.is_admin && <DeleteAccount />}
       </div>
 
       {/* ----------------------------- live preview ----------------------------- */}
@@ -317,7 +333,7 @@ export default function ProfileForm({ profile, schools, isNew, next }: { profile
                 {skills.slice(0, 5).map((k) => <span key={k} className="chip">{k}</span>)}
               </div>
             ) : null}
-            <p className={`mt-6 border-t border-line pt-4 text-sm font-medium ${looking ? "text-ok" : "text-muted"}`}>{looking ? "● Not on a team" : "On a team"}</p>
+            <p className={`mt-6 border-t border-line pt-4 text-sm font-medium ${looking ? "text-ok" : "text-muted"}`}>{teamChoice === "place_me" ? "● Wants to be placed" : teamChoice === "own_team" ? "● Finding a team" : teamChoice === "have" ? "Has teammates in mind" : "Team: not chosen yet"}</p>
           </div>
         </div>
       </aside>

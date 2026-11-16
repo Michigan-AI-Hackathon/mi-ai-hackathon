@@ -54,6 +54,24 @@ export const YEARS = [
   "Fourth year",
   "Fifth year or more",
   "Graduate student",
+  "PhD student",
+] as const;
+
+// Standard fields of study, so we can report where students come from. "Other" lets them type their own.
+export const STUDY_AREAS = [
+  "Computer science & data science",
+  "Engineering",
+  "Business & management",
+  "Finance, accounting & economics",
+  "Health & medicine",
+  "Biological & physical sciences",
+  "Mathematics & statistics",
+  "Design, arts & architecture",
+  "Social sciences & psychology",
+  "Communication & media",
+  "Humanities",
+  "Education",
+  "Law & public policy",
 ] as const;
 
 // Suggestions only; students can add their own.

@@ -6,9 +6,19 @@ import { requireAdmin } from "@/lib/admin";
 
 type Row = {
   id: string; full_name: string | null; email: string; year: string | null; study_area: string | null; avatar_url: string | null;
-  onboarded_at: string | null; paid_at: string | null; checked_in_at: string | null; pronouns: string | null; resume_path: string | null; placement_pref: string | null; created_at: string; schools: { name: string } | null;
+  last_active_at: string | null; onboarded_at: string | null; paid_at: string | null; checked_in_at: string | null; pronouns: string | null; resume_path: string | null; placement_pref: string | null; created_at: string; schools: { name: string } | null;
 };
-const FILTERS = [["all", "Everyone"], ["unpaid", "Not paid"], ["paid", "Paid"], ["solo", "Paid, no team"], ["team", "On a team"], ["incomplete", "Profile unfinished"], ["checked", "Checked in"]] as const;
+const FILTERS = [["all", "Everyone"], ["unpaid", "Not paid"], ["paid", "Paid"], ["solo", "Paid, no team"], ["team", "On a team"], ["incomplete", "Profile unfinished"], ["checked", "Checked in"], ["full", "On a full team (4)"], ["partial", "On a partial team"], ["noteam", "Not on any team"], ["quiet", "Inactive 7+ days"]] as const;
+
+// "3 hours ago" style, for the last-active column.
+function ago(iso: string | null) {
+  if (!iso) return "never";
+  const m = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 60000));
+  if (m < 2) return "just now";
+  if (m < 60) return `${m} min ago`;
+  if (m < 1440) return `${Math.round(m / 60)} h ago`;
+  return `${Math.round(m / 1440)} d ago`;
+}
 
 export default async function StudentsPage({ searchParams }: { searchParams: Promise<{ q?: string; f?: string }> }) {
   const sp = await searchParams;
@@ -16,7 +26,7 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
   const f = FILTERS.some(([k]) => k === sp.f) ? sp.f! : "all";
   const q = (sp.q ?? "").replace(/[,()%*\\.]/g, " ").trim().slice(0, 60);
 
-  let query = supabase.from("profiles").select("id, full_name, email, year, study_area, avatar_url, onboarded_at, paid_at, checked_in_at, pronouns, resume_path, placement_pref, created_at, schools(name)").order("created_at", { ascending: false }).limit(300);
+  let query = supabase.from("profiles").select("id, full_name, email, year, study_area, avatar_url, last_active_at, onboarded_at, paid_at, checked_in_at, pronouns, resume_path, placement_pref, created_at, schools(name)").order("created_at", { ascending: false }).limit(300);
   if (q) query = query.or(`full_name.ilike.%${q}%,email.ilike.%${q}%`);
   if (f === "unpaid") query = query.is("paid_at", null);
   if (f === "incomplete") query = query.is("onboarded_at", null);
@@ -31,6 +41,10 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
   if (f === "solo") rows = rows.filter((r) => r.paid_at && r.onboarded_at && !teamOf.has(r.id));
   if (f === "team") rows = rows.filter((r) => teamOf.has(r.id));
   if (f === "checked") rows = rows.filter((r) => r.checked_in_at);
+  if (f === "full") rows = rows.filter((r) => (size.get(teamOf.get(r.id) ?? "") ?? 0) >= 4);
+  if (f === "partial") rows = rows.filter((r) => teamOf.has(r.id) && (size.get(teamOf.get(r.id)!) ?? 0) < 4);
+  if (f === "noteam") rows = rows.filter((r) => r.onboarded_at && !teamOf.has(r.id));
+  if (f === "quiet") rows = rows.filter((r) => !r.last_active_at || Date.now() - Date.parse(r.last_active_at) > 7 * 86400000);
 
   // Resumes are private: sign short-lived links with the organizer's own session (storage policy allows organizers only).
   const resumeUrl = new Map<string, string>();
@@ -66,14 +80,15 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
                 <div className="flex flex-wrap gap-1.5 text-[13px] font-medium">
                   <span className={`chip ${r.onboarded_at ? "" : "border-warn text-warn"}`}>{r.onboarded_at ? "Profile done" : "Profile unfinished"}</span>
                   <span className={`chip ${r.paid_at ? "border-ok text-ok" : "border-warn text-warn"}`}>{r.paid_at ? "Paid" : "Not paid"}</span>
-                  <span className="chip">{tid ? `Team: ${teamName.get(tid)}` : "No team"}</span>
+                  <span className={`chip ${tid && (size.get(tid) ?? 0) >= 4 ? "border-ok text-ok" : ""}`}>{tid ? `Team: ${teamName.get(tid)} (${size.get(tid) ?? 0}/4)` : "No team"}</span>
+                  <span className="chip" title={r.last_active_at ?? "No activity recorded yet"}>Active {ago(r.last_active_at)}</span>
                   {r.placement_pref === "place_me" && <span className="chip border-primary text-primary">Wants placement</span>}
                   {r.placement_pref === "own_team" && <span className="chip">Picking own team</span>}
                   {r.resume_path && resumeUrl.get(r.resume_path) && <a href={resumeUrl.get(r.resume_path)} target="_blank" rel="noopener noreferrer" className="chip border-primary text-primary hover:underline">Resume</a>}
                   {r.checked_in_at && <span className="chip border-ink bg-ink text-card">Checked in</span>}
                 </div>
               </div>
-              <StudentActions id={r.id} paid={!!r.paid_at} checkedIn={!!r.checked_in_at} teamId={tid} teams={options} />
+              <details className="group"><summary className="btn-secondary w-fit cursor-pointer list-none text-sm [&::-webkit-details-marker]:hidden">Manage</summary><div className="mt-3"><StudentActions id={r.id} paid={!!r.paid_at} checkedIn={!!r.checked_in_at} teamId={tid} teams={options} /></div></details>
             </li>
           );
         })}

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import PageHeader from "@/components/PageHeader";
 import { SeatPips, TeamAvatars } from "@/components/Seats";
 import ActionButton from "@/components/ActionButton";
+import PlacementNotice from "@/components/PlacementNotice";
 import StudentCard from "@/components/StudentCard";
 import { DragArea, Drop } from "@/components/DragDrop";
 import { requestToJoin } from "@/app/actions";
@@ -64,6 +65,8 @@ export default async function TeamsPage({ searchParams }: { searchParams: Promis
 
       {!canAct && <p className="mt-4 rounded-lg bg-warn/10 px-4 py-3 text-[15px] text-warn">Pay the {currentFee().label} fee on your <Link href="/dashboard" className="underline">dashboard</Link> first.</p>}
 
+      {canAct && !myTeamId && profile.placement_pref === "place_me" && <div className="mt-4"><PlacementNotice /></div>}
+
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         {myTeamId ? (
           <Drop accept="person" mode="invite" disabled={!canInvite} className="panel flex flex-wrap items-center justify-between gap-4">
@@ -79,7 +82,7 @@ export default async function TeamsPage({ searchParams }: { searchParams: Promis
           <>
             <details className="group panel lg:col-span-2" open={false}>
               <summary className="btn-primary w-full cursor-pointer list-none px-6 py-3 text-base sm:w-fit [&::-webkit-details-marker]:hidden">Start a team</summary>
-              <div className="mt-5">{canAct ? <TeamForm mode="create" /> : <p className="text-[15px] text-warn">Pay the fee first.</p>}</div>
+              <div className="mt-5">{canAct ? <><TeamForm mode="create" /><p className="hint mt-3">You&apos;ll be the team leader. Only the leader can lock in the team, and you can hand it to someone else later.</p></> : <p className="text-[15px] text-warn">Pay the fee first.</p>}</div>
             </details>
           </>
         )}

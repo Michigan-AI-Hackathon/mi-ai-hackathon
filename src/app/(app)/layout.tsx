@@ -16,6 +16,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     supabase.from("team_members").select("team_id").eq("user_id", profile.id).maybeSingle(),
   ]);
   const dev = await devScenario();
+  // Record that they're around (the database writes at most once per 10 minutes; skip the call when it's fresh).
+  const seen = profile.last_active_at ? Date.parse(profile.last_active_at) : 0;
+  if (!dev && Date.now() - seen > 10 * 60_000) await supabase.rpc("touch_active");
   const unread = ((convs ?? []) as { unread: number }[]).reduce((n, c) => n + c.unread, 0);
 
   return (

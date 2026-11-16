@@ -43,7 +43,8 @@ const steps = [
   { title: "Lock your team", body: "Locked teams keep their spot." },
 ];
 
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<{ deleted?: string }> }) {
+  const { deleted } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const fee = currentFee();
@@ -88,6 +89,7 @@ export default async function Home() {
       </ScrollHeader>
 
       <main>
+        {deleted && <p role="status" className="bg-ink px-4 py-3 text-center text-[15px] text-card">Your account was deleted. You&apos;re no longer registered for the hackathon.</p>}
         {/* Hero: one idea, then the schools */}
         <section className="flex min-h-[100svh] flex-col">
           <div className="rise mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-6 sm:px-6" style={{ "--i": 0 } as React.CSSProperties}>
@@ -159,7 +161,7 @@ export default async function Home() {
               <ul className="divide-y divide-line border-y border-line" aria-label="Example team of four">
                 {roster.map((m, i) => (
                   <li key={m.skill} className="group flex items-center gap-4 py-4 transition-[padding] duration-300 [transition-timing-function:var(--ease-out)] hover:pl-2">
-                    <span className="flex w-24 shrink-0 justify-start sm:w-28"><SchoolBadge slug={m.slug} abbr={m.abbr} name={m.school} size={22} maxW={100} /></span>
+                    <SchoolBadge slug={m.slug} abbr={m.abbr} name={m.school} size={44} tile />
                     <span className="min-w-0 flex-1">
                       <span className="block font-heading text-xl font-semibold">{m.skill}</span>
                       <span className="block text-[15px] text-muted">{m.school}</span>

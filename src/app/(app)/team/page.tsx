@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Avatar from "@/components/Avatar";
 import { SeatPips } from "@/components/Seats";
 import ActionButton from "@/components/ActionButton";
-import { cancelInvite, leaveTeam, lockTeam, respondInvite } from "@/app/actions";
+import { cancelInvite, leaveTeam, lockTeam, respondInvite, setTeamLeader } from "@/app/actions";
 import { LOCK_DEADLINE_LABEL } from "@/lib/config";
 import { requireStudent } from "@/lib/session";
 import { timeLeft } from "@/lib/time";
@@ -34,6 +34,9 @@ export default async function TeamPage() {
   const requests = (invites ?? []).filter((i) => i.kind === "request");
   const schools = new Set(list.map((m) => m.school_group)).size;
   const locked = !!team?.locked_at;
+  const leaderId = (team?.leader_id as string | null) ?? null;
+  const isLeader = leaderId === profile.id;
+  const leader = list.find((m) => m.id === leaderId);
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr]">
@@ -56,10 +59,12 @@ export default async function TeamPage() {
                   <Avatar url={m.avatar_url} name={m.full_name} size={44} />
                   <div className="min-w-0">
                     <Link href={`/people/${m.id}`} className="font-heading text-lg font-semibold text-primary underline-offset-4 after:absolute after:inset-0 after:content-[''] group-hover:underline">{m.full_name}{m.id === profile.id && " (you)"}</Link>
+                    {m.id === leaderId && <span className="ml-2 rounded-full bg-ink px-2 py-0.5 align-middle text-[11px] font-semibold text-card">Leader</span>}
                     <p className="text-[15px] text-muted">{m.school_name}</p>
                   </div>
                 </div>
                 <div className="mt-2 flex items-center justify-between text-sm text-muted"><span>{m.study_area}</span><span aria-hidden className="inline-flex min-h-11 items-center gap-1 rounded-md border border-line px-3 font-semibold text-primary transition-colors group-hover:border-primary group-hover:bg-primary/5">View profile ›</span></div>
+                {isLeader && m.id !== profile.id && <div className="relative z-10 mt-2"><ActionButton action={setTeamLeader.bind(null, m.id)} variant="secondary" confirm={`Make ${m.full_name} the team leader? Only the leader can lock in the team.`}>Make leader</ActionButton></div>}
               </li>
             ) : (
               <li key={i} className="rise" style={{ "--i": i + 1 } as React.CSSProperties}>
@@ -124,7 +129,9 @@ export default async function TeamPage() {
           ) : (
             <>
               <p className="mt-2 text-sm font-medium text-ink">Deadline: {LOCK_DEADLINE_LABEL.toLowerCase()}</p>
-              {problem ? (
+              {!isLeader ? (
+                <p className="mt-3 text-[15px] text-muted">Only your team leader{leader ? ` (${leader.full_name})` : ""} can lock in the team.</p>
+              ) : problem ? (
                 <p className="mt-3 text-[15px] text-warn">{problem as string}</p>
               ) : (
                 <div className="mt-3"><ActionButton action={lockTeam} confirm="Lock in your team? Nobody can join or leave after this.">Lock in team</ActionButton></div>

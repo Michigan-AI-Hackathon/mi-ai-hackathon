@@ -19,10 +19,16 @@ export async function POST(req: Request) {
   }
   const db = createAdminClient();
 
-  async function markPaid(userId: string | null | undefined, paymentIntent: string | null | undefined, sessionId: string | null, amount: number) {
+  // Sponsorship details put on the checkout by startCheckout. Absent for an unsponsored payment.
+  const num = (v: string | undefined) => { const n = Number(v); return v && Number.isInteger(n) && n >= 0 ? n : null; };
+  async function markPaid(userId: string | null | undefined, paymentIntent: string | null | undefined, sessionId: string | null, amount: number, meta?: Stripe.Metadata | null) {
     if (!userId || !paymentIntent) return null;
     const { error } = await db.from("payments").upsert(
-      { user_id: userId, payment_intent: paymentIntent, stripe_session_id: sessionId ?? paymentIntent, amount_cents: amount },
+      {
+        user_id: userId, payment_intent: paymentIntent, stripe_session_id: sessionId ?? paymentIntent, amount_cents: amount,
+        base_cents: num(meta?.base_cents), subsidy_pct: num(meta?.subsidy_pct), subsidy_cents: num(meta?.subsidy_cents),
+        school_id: num(meta?.school_id), tier: meta?.tier || null,
+      },
       { onConflict: "payment_intent", ignoreDuplicates: true },
     );
     if (error) return error.message;
@@ -37,13 +43,13 @@ export async function POST(req: Request) {
       const s = event.data.object as Stripe.Checkout.Session;
       if (s.payment_status === "paid") {
         const pi = typeof s.payment_intent === "string" ? s.payment_intent : s.payment_intent?.id;
-        failure = await markPaid(s.metadata?.user_id ?? s.client_reference_id, pi, s.id, s.amount_total ?? 0);
+        failure = await markPaid(s.metadata?.user_id ?? s.client_reference_id, pi, s.id, s.amount_total ?? 0, s.metadata);
       }
       break;
     }
     case "payment_intent.succeeded": {
       const p = event.data.object as Stripe.PaymentIntent;
-      failure = await markPaid(p.metadata?.user_id, p.id, null, p.amount_received);
+      failure = await markPaid(p.metadata?.user_id, p.id, null, p.amount_received, p.metadata);
       break;
     }
     case "charge.succeeded":
@@ -51,7 +57,7 @@ export async function POST(req: Request) {
       const c = event.data.object as Stripe.Charge;
       if (c.paid && c.status === "succeeded") {
         const pi = typeof c.payment_intent === "string" ? c.payment_intent : c.payment_intent?.id;
-        failure = await markPaid(c.metadata?.user_id, pi, null, c.amount_captured);
+        failure = await markPaid(c.metadata?.user_id, pi, null, c.amount_captured, c.metadata);
       }
       break;
     }

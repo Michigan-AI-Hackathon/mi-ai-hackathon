@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Logo from "@/components/Logo";
 import NavProgress from "@/components/NavProgress";
-import NavLink from "@/components/NavLink";
+import AdminNav from "@/components/admin/AdminNav";
 import { requireAdmin } from "@/lib/admin";
 import { devScenario } from "@/lib/dev-preview";
 
@@ -31,19 +31,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <form action="/auth/signout" method="post"><button className="link-draw min-h-11 hover:text-ink">Sign out</button></form>
           </div>
         </div>
-        <nav className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-2 sm:px-4" aria-label="Organizer">
-          <NavLink href="/admin/overview">Overview</NavLink>
-          <NavLink href="/admin/students">Students</NavLink>
-          <NavLink href="/admin/teams">Teams</NavLink>
-          <NavLink href="/admin/matching">Matching</NavLink>
-          <NavLink href="/admin/judging">Judging</NavLink>
-          <NavLink href="/admin/events">Events</NavLink>
-          <NavLink href="/admin/day-of">Day of</NavLink>
-          <NavLink href="/admin/points">Points</NavLink>
-          <NavLink href="/admin/help">Help</NavLink>
-          <NavLink href="/admin/broadcast">Announce</NavLink>
-          <NavLink href="/admin/audit">Audit log</NavLink>
-        </nav>
+        <AdminNav />
       </header>
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10">{children}</main>
     </div>

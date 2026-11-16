@@ -53,10 +53,10 @@ function build(requested: Scenario) {
   ];
   const members = dir.filter((d) => d.team_id).map((d) => ({ team_id: d.team_id, user_id: d.id, teams: { name: d.team_name, locked_at: null } }));
   const teams = [
-    { id: T1, name: "Maize Mind", track: "FinTech", needs: "A designer and someone with healthcare experience", created_at: iso(-60), locked_at: null },
-    { id: T2, name: "Pulse Labs", track: "HealthTech", needs: "A backend engineer", created_at: iso(-40), locked_at: null },
-    { id: T3, name: "Sideline", track: "SportsTech", needs: "Someone who knows data and sports analytics", created_at: iso(-20), locked_at: null },
-    { id: T4, name: "Gearbox", track: "Industry 4.0", needs: null, created_at: iso(-5), locked_at: null },
+    { id: T1, name: "Maize Mind", track: "FinTech", needs: "A designer and someone with healthcare experience", created_at: iso(-60), locked_at: null, leader_id: ME },
+    { id: T2, name: "Pulse Labs", track: "HealthTech", needs: "A backend engineer", created_at: iso(-40), locked_at: null, leader_id: "20000000-0000-4000-8000-000000000012" },
+    { id: T3, name: "Sideline", track: "SportsTech", needs: "Someone who knows data and sports analytics", created_at: iso(-20), locked_at: null, leader_id: "20000000-0000-4000-8000-000000000014" },
+    { id: T4, name: "Gearbox", track: "Industry 4.0", needs: null, created_at: iso(-5), locked_at: null, leader_id: "20000000-0000-4000-8000-000000000021" },
   ].filter((t) => scenario === "team" || t.id !== T1);
   const live = teams.map((t) => t.id);
   const memberRows = members.filter((m) => live.includes(m.team_id!));
@@ -68,7 +68,7 @@ function build(requested: Scenario) {
        { id: "i3", kind: "invite", team_id: T4, student_id: ME, sent_by: dir[11].id, status: "declined", expires_at: iso(-30), created_at: iso(-80), teams: { name: "Gearbox", track: "Industry 4.0", needs: null } }];
   const profile = { id: ME, email: "alex.rivera@umich.edu", full_name: "Alex Rivera", school_id: 1, year: "Third year", study_area: "Information science",
     skills: ["Frontend", "Product management"], interests: ["Startups"], tracks: ["FinTech"], bio: dir[0].bio, looking_for_team: true, linkedin_url: null,
-    onboarded_at: scenario === "new" ? null : iso(-200), paid_at: scenario === "new" || scenario === "unpaid" ? null : iso(-150), is_admin: isAdmin, avatar_url: scenario === "new" ? null : "preset-engineer" };
+    onboarded_at: scenario === "new" ? null : iso(-200), paid_at: scenario === "new" || scenario === "unpaid" ? null : iso(-150), is_admin: isAdmin, avatar_url: scenario === "new" ? null : "preset-engineer", placement_pref: scenario === "solo" ? "place_me" : null, last_active_at: iso(-0.1) };
   if (scenario === "new") Object.assign(profile, { full_name: null, year: null, study_area: null, skills: [], interests: [], tracks: [], bio: null, school_id: null });
   const convs = [
     { conversation_id: "c1", kind: scenario === "team" ? "team" : "direct", title: scenario === "team" ? "Maize Mind" : "Devon Carter", last_body: "Sounds good, I can sketch the onboarding flow tonight.", last_at: iso(-1), unread: 2 },
@@ -84,7 +84,7 @@ function build(requested: Scenario) {
   const others = dir.filter((d) => d.id !== ME).map((d, i) => ({
     id: d.id, email: `${d.full_name.toLowerCase().replace(/[^a-z]+/g, ".")}@${["msu", "wayne", "calvin", "gvsu", "umich", "mtu", "ltu", "oakland", "emu", "hope", "cmu", "kettering"][i % 12]}.edu`,
     full_name: d.full_name, year: ["First year", "Second year", "Third year", "Fourth year"][i % 4], study_area: d.study_area, school_id: d.school_id, schools: { name: d.school_name },
-    tracks: d.tracks, skills: d.skills, avatar_url: d.avatar_url, onboarded_at: iso(-100 - i), paid_at: i % 5 === 4 ? null : iso(-80 - i), checked_in_at: i % 4 === 0 ? iso(-1) : null, created_at: iso(-24 * (i + 1)), is_admin: false,
+    tracks: d.tracks, skills: d.skills, avatar_url: d.avatar_url, onboarded_at: iso(-100 - i), paid_at: i % 5 === 4 ? null : iso(-80 - i), checked_in_at: i % 4 === 0 ? iso(-1) : null, created_at: iso(-24 * (i + 1)), last_active_at: i % 6 === 5 ? iso(-24 * 9) : iso(-3 * (i + 1)), is_admin: false,
   }));
   const audit = [
     { id: 3, action: "auto_fill", details: { students_placed: 8, groups: 2 }, created_at: iso(-2), profiles: { full_name: "Alex Rivera", email: "alex.rivera@umich.edu" } },
@@ -153,6 +153,48 @@ export function createMockClient(scenario: Scenario) {
       by_track: [{ name: "FinTech", n: 52 }, { name: "HealthTech", n: 44 }, { name: "SportsTech", n: 31 }, { name: "Industry 4.0", n: 27 }],
       signups_by_day: Array.from({ length: 21 }, (_, i) => ({ day: `2026-10-${String(i + 10).padStart(2, "0")}`, n: Math.round(3 + 9 * Math.abs(Math.sin(i / 3)) + i / 4) })) },
     admin_matching_settings: { target_team_size: 4, allow_force_school_mix: false, track_weight: 3 },
+    judge_me: { id: "j1", name: "Dana Lee", org: "Rocket Money", email: "dana@example.com" },
+    admin_judging_data: {
+      criteria: [
+        { id: "c1", name: "Innovation", description: "How original is the idea?", max_score: 10, active: true },
+        { id: "c2", name: "Technical depth", description: "How well is it built?", max_score: 10, active: true },
+        { id: "c3", name: "Pitch", description: "How clearly was it presented?", max_score: 10, active: true },
+      ],
+      judges: [
+        { id: "j1", email: "dana@example.com", name: "Dana Lee", org: "Rocket Money", signed_in: true, tracks: ["FinTech"], teams: [] },
+        { id: "j2", email: "sam@example.com", name: "Sam Ortiz", org: null, signed_in: false, tracks: [], teams: ["t2"] },
+      ],
+      teams: [
+        { id: "t1", number: 1, name: "Maize Mind", track: "FinTech", members: 4 },
+        { id: "t2", number: 2, name: "Blue Wave", track: "HealthTech", members: 3 },
+        { id: "t3", number: 3, name: "Spartan Labs", track: "FinTech", members: 4 },
+      ],
+      scores: [
+        { judge: "j1", team: "t1", criterion: "c1", score: 8 }, { judge: "j1", team: "t1", criterion: "c2", score: 7 }, { judge: "j1", team: "t1", criterion: "c3", score: 9 },
+        { judge: "j1", team: "t3", criterion: "c1", score: 6 }, { judge: "j1", team: "t3", criterion: "c2", score: 8 }, { judge: "j1", team: "t3", criterion: "c3", score: 7 },
+      ],
+      reviews: [{ judge: "j1", team: "t1", comment: "Strong demo, clear market.", updated_at: "2026-11-10T15:00:00Z" }],
+    },
+    judge_overview: {
+      criteria: [
+        { id: "c1", name: "Innovation", description: "How original is the idea?", max_score: 10 },
+        { id: "c2", name: "Technical depth", description: "How well is it built?", max_score: 10 },
+        { id: "c3", name: "Pitch", description: "How clearly was it presented?", max_score: 10 },
+      ],
+      teams: [
+        { id: "t1", number: 1, name: "Maize Mind", track: "FinTech", members: [{ name: "Alex Rivera", school: "University of Michigan" }, { name: "Priya Shah", school: "Wayne State University" }], scores: { c1: 8, c2: 7, c3: 9 }, comment: "Strong demo, clear market." },
+        { id: "t3", number: 3, name: "Spartan Labs", track: "FinTech", members: [{ name: "Jordan Kim", school: "Michigan State University" }], scores: {}, comment: null },
+      ],
+    },
+    my_sponsorship: { school_id: 4, tier: "B", label: "Half sponsor", subsidy_pct: 50, seats_left: null },
+    admin_sponsorship_data: {
+      tiers: [{ code: "A", label: "Full sponsor", pct: 100 }, { code: "B", label: "Half sponsor", pct: 50 }, { code: "C", label: "No sponsor", pct: 0 }],
+      schools: [
+        { id: 4, name: "Michigan State University", kind: "public", tier: "B", sponsor: "MSU Broad College", seat_cap: 40, students: 27, paid: 19, sponsored: 19, free: 0, subsidy_cents: 19000, student_cents: 19000 },
+        { id: 5, name: "Wayne State University", kind: "public", tier: "A", sponsor: "Rocket Money", seat_cap: null, students: 15, paid: 9, sponsored: 9, free: 9, subsidy_cents: 18000, student_cents: 0 },
+        { id: 9, name: "Grand Valley State University", kind: "public", tier: null, sponsor: null, seat_cap: null, students: 9, paid: 6, sponsored: 0, free: 0, subsidy_cents: 0, student_cents: 12000 },
+      ],
+    },
     mark_read: null,
     self_check_in: null,
   };

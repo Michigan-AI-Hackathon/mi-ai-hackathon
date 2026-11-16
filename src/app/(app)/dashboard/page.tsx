@@ -2,9 +2,12 @@ import Link from "next/link";
 import Avatar from "@/components/Avatar";
 import Countdown from "@/components/Countdown";
 import PayButton from "@/components/PayButton";
+import Banners from "@/components/Banners";
+import PlacementNotice from "@/components/PlacementNotice";
 import { SeatPips } from "@/components/Seats";
 import { startCheckout } from "@/app/actions";
 import { EVENT, LOCK_DEADLINE_LABEL, currentFee } from "@/lib/config";
+import { money, priceFor, type Sponsorship } from "@/lib/pricing";
 import { requireStudent } from "@/lib/session";
 import type { Student } from "@/lib/types";
 
@@ -23,7 +26,7 @@ function Step({ n, done, current, title, last, children }: { n: number; done: bo
   );
 }
 
-export default async function Dashboard({ searchParams }: { searchParams: Promise<{ paid?: string; welcome?: string }> }) {
+export default async function Dashboard({ searchParams }: { searchParams: Promise<{ paid?: string; welcome?: string; claimed?: string; sponsor?: string }> }) {
   const sp = await searchParams;
   const { supabase, profile } = await requireStudent();
   const [{ data: membership }, { data: settings }] = await Promise.all([
@@ -42,6 +45,12 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const teamSize = members.length;
   const paid = !!profile.paid_at;
   const fee = currentFee();
+  // What this student's school covers (worked out in the database from their verified school).
+  const { data: sponsorData } = paid ? { data: null } : await supabase.rpc("my_sponsorship");
+  const quote = priceFor(fee.cents, ((sponsorData as Sponsorship | null)?.subsidy_pct) ?? 0);
+  const covered = quote.subsidyCents > 0;
+  const free = quote.dueCents === 0;
+  const payLabel = free ? "Claim your free spot" : `Pay ${money(quote.dueCents)}`;
   const pass = paid ? (
     <div className="panel rise" style={{ "--i": 1 } as React.CSSProperties}>
       <p className="eyebrow text-muted">Event check-in</p>
@@ -86,18 +95,34 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         </Link>
       </div>
 
+      <Banners />
+
       {sp.paid && !paid && (
         <p role="status" className="mb-6 rounded-lg border border-accent/40 bg-accent/10 px-4 py-3 text-[15px]">
           Payment received. It can take a few seconds to show up here, so refresh in a moment.
         </p>
       )}
 
+      {sp.claimed && paid && (
+        <p role="status" className="mb-6 rounded-lg border border-accent/40 bg-accent/10 px-4 py-3 text-[15px]">You&apos;re registered. Your school covered your fee.</p>
+      )}
+      {sp.sponsor === "changed" && !paid && (
+        <p role="status" className="mb-6 rounded-lg border border-warn/40 bg-warn/10 px-4 py-3 text-[15px]">Your school&apos;s sponsorship changed, so we couldn&apos;t apply it. The price below is up to date.</p>
+      )}
+
+      {paid && !team && profile.placement_pref === "place_me" && <div className="mb-6"><PlacementNotice /></div>}
+
       {pass && <div className="mb-6 lg:hidden">{pass}</div>}
 
       <section className="rise mb-6 rounded-2xl border-2 border-ink bg-card p-6 sm:p-8" aria-labelledby="next-h">
         {current === 0 && (<>
-          <h2 id="next-h" className="mt-1 font-heading text-2xl font-bold">Pay the {fee.label} registration fee</h2>
-          <form action={startCheckout} className="mt-4"><PayButton label={`Pay ${fee.label}`} /></form>
+          {covered ? (<>
+            <h2 id="next-h" className="mt-1 font-heading text-2xl font-bold">{free ? "Your school covers your registration" : `Your school covers ${money(quote.subsidyCents)} of your registration`}</h2>
+            <p className="mt-1 text-[15px] text-muted">{free ? <>The {money(quote.baseCents)} fee is paid for. You don&apos;t owe anything.</> : <>The fee is {money(quote.baseCents)}. You pay {money(quote.dueCents)}.</>}</p>
+          </>) : (
+            <h2 id="next-h" className="mt-1 font-heading text-2xl font-bold">Pay the {fee.label} registration fee</h2>
+          )}
+          <form action={startCheckout} className="mt-4"><PayButton label={payLabel} pendingLabel={free ? "Claiming…" : undefined} /></form>
         </>)}
         {current === 1 && (<>
           <h2 id="next-h" className="mt-1 font-heading text-2xl font-bold">Get on a team of 4</h2>
@@ -118,8 +143,8 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         <section className="panel rise p-6 sm:p-8" style={{ "--i": 2 } as React.CSSProperties}>
           <h2 className="mb-7 font-heading text-xl font-semibold">Checklist</h2>
           <ol>
-            <Step n={1} done={paid} current={current === 0} title={paid ? "Registration paid" : `Pay the ${fee.label} registration fee`}>
-              {paid ? <>Paid {new Date(profile.paid_at!).toLocaleDateString()}.</> : <>Non-refundable.</>}
+            <Step n={1} done={paid} current={current === 0} title={paid ? "Registration paid" : free ? "Claim your free spot" : `Pay the ${covered ? money(quote.dueCents) : fee.label} registration fee`}>
+              {paid ? <>Paid {new Date(profile.paid_at!).toLocaleDateString()}.</> : free ? <>Your school covers the fee.</> : <>Non-refundable.</>}
             </Step>
             <Step n={2} done={!!team} current={current === 1} title={team ? `On team ${team.name}` : "Join or create a team"}>
               {team && (

@@ -8,6 +8,21 @@ import { claimSignupSource } from "@/lib/claim-source";
 // TEST MODE ONLY: password sign-in with no email. Shown only when
 // NEXT_PUBLIC_ENABLE_TEST_LOGIN=true in Vercel. Turn it off before launch.
 // Michigan-only emails are still enforced by the database.
+//
+// Optional "demo accounts" shortcuts for testers: shown only when NEXT_PUBLIC_SHOW_DEMO_ACCOUNTS=true and
+// NEXT_PUBLIC_DEMO_PASSWORD is set (the accounts come from scripts/seed-demo.mjs). Use on a staging project only.
+const DEMO_PASSWORD = process.env.NEXT_PUBLIC_DEMO_PASSWORD ?? "";
+const DEMO_ON = process.env.NEXT_PUBLIC_SHOW_DEMO_ACCOUNTS === "true" && DEMO_PASSWORD.length >= 6;
+const DEMO_ACCOUNTS = [
+  { email: "organizer@umich.edu", label: "Organizer", note: "Admin dashboard, banners, matching" },
+  { email: "solo.omar@umich.edu", label: "Paid, no team", note: "Asked to be placed on a team" },
+  { email: "unpaid.tia@umich.edu", label: "Not paid yet", note: "Sees the pay / claim step" },
+  { email: "ns.ava@umich.edu", label: "Team leader (locked)", note: "Northstar, 4 of 4" },
+  { email: "ns.ben@msu.edu", label: "Teammate (locked)", note: "Not the leader" },
+  { email: "bh.ivy@msu.edu", label: "Leader, 3 of 4", note: "Blue Heron, can invite" },
+  { email: "newstudent@umich.edu", label: "Brand-new student", note: "Goes through onboarding" },
+];
+
 export default function TestLogin() {
   const supabase = createClient();
   const router = useRouter();
@@ -36,7 +51,23 @@ export default function TestLogin() {
     router.refresh();
   }
 
-  return (
+  return (<>
+    {DEMO_ON && (
+      <div className="mt-8 rounded-xl border border-line bg-card p-4">
+        <p className="text-sm font-semibold">Test accounts</p>
+        <p className="mt-0.5 text-[13px] text-muted">Tap one to fill the form, then sign in. For testing only.</p>
+        <ul className="mt-3 grid gap-1.5">
+          {DEMO_ACCOUNTS.map((a) => (
+            <li key={a.email}>
+              <button type="button" onClick={() => { setEmail(a.email); setPassword(DEMO_PASSWORD); setError(null); }}
+                className={`flex w-full items-baseline justify-between gap-3 rounded-lg border px-3 py-2 text-left text-sm transition-colors hover:border-ink ${email === a.email ? "border-ink bg-ink/5" : "border-line"}`}>
+                <span className="font-medium">{a.label}</span><span className="truncate text-[12px] text-muted">{a.note}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
     <form onSubmit={submit} className="mt-8">
       <label htmlFor="t-email" className="label">School email</label>
       <input id="t-email" type="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} required />
@@ -45,5 +76,5 @@ export default function TestLogin() {
       {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
       <button className="btn-primary mt-5 w-full py-3" disabled={busy}>{busy ? "Signing in…" : "Sign in or create account"}</button>
     </form>
-  );
+  </>);
 }
