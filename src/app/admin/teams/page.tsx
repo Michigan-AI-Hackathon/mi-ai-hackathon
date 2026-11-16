@@ -7,7 +7,7 @@ import { SeatPips } from "@/components/Seats";
 import { adminDissolveTeam, adminRemoveFromTeam, adminSetTeamLock } from "@/app/admin/actions";
 import { requireAdmin } from "@/lib/admin";
 
-type Member = { id: string; full_name: string | null; school_id: number; paid_at: string | null; onboarded_at?: string | null; checked_in_at: string | null; avatar_url: string | null };
+type Member = { id: string; full_name: string | null; school_id: number; paid_at: string | null; onboarded_at?: string | null; placement_pref?: string | null; checked_in_at: string | null; avatar_url: string | null };
 
 export default async function TeamsPage({ searchParams }: { searchParams: Promise<{ f?: string }> }) {
   const { f } = await searchParams;
@@ -15,7 +15,7 @@ export default async function TeamsPage({ searchParams }: { searchParams: Promis
   const [{ data: teams }, { data: tm }, { data: people }, { data: schools }] = await Promise.all([
     supabase.from("teams").select("id, name, track, locked_at, created_at, team_number").order("created_at", { ascending: false }).limit(500),
     supabase.from("team_members").select("team_id, user_id"),
-    supabase.from("profiles").select("id, full_name, school_id, paid_at, onboarded_at, checked_in_at, avatar_url").limit(5000),
+    supabase.from("profiles").select("id, full_name, school_id, paid_at, onboarded_at, checked_in_at, avatar_url, placement_pref").limit(5000),
     supabase.from("schools").select("id, name, rule_group"),
   ]);
   const person = new Map((people ?? []).map((p) => [p.id as string, p as Member]));
@@ -35,26 +35,31 @@ export default async function TeamsPage({ searchParams }: { searchParams: Promis
   }).filter((t) => f === "incomplete" ? t.flags.length > 0 : f === "locked" ? !!t.locked_at : f === "open" ? !t.locked_at : true);
 
   const placed = new Set((tm ?? []).map((x) => x.user_id as string));
-  const unassigned = (people ?? []).filter((p) => p.onboarded_at && !placed.has(p.id)).sort((a, b) => (a.full_name ?? "").localeCompare(b.full_name ?? "")).slice(0, 80) as Member[];
+  const unassigned = (people ?? []).filter((p) => p.onboarded_at && !placed.has(p.id)).sort((a, b) => Number(b.placement_pref === "place_me") - Number(a.placement_pref === "place_me") || (a.full_name ?? "").localeCompare(b.full_name ?? "")) as Member[];
   const openTeams = rows.filter((t) => !t.locked_at && t.members.length < 4).map((t) => ({ id: t.id as string, name: t.name as string, open: 4 - t.members.length }));
 
   return (
     <DragArea>
       <PageHeader eyebrow="Teams" title="Every team">Drag a student onto a team to place them. Teams that need attention are flagged.</PageHeader>
       {unassigned.length > 0 && (
-        <section className="panel mb-6">
-          <h2 className="font-heading text-lg font-semibold">No team yet <span className="text-muted">({unassigned.length})</span></h2>
-          <ul className="mt-3 grid gap-2 md:grid-cols-2">
+        <details open className="panel mb-6">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+            <h2 className="font-heading text-lg font-semibold">No team yet <span className="text-muted">({unassigned.length})</span></h2>
+            <span className="text-sm text-muted">Show or hide</span>
+          </summary>
+          <p className="mt-1 text-sm text-muted">Students who asked to be placed are first. Drag one onto a team below, or pick a team here.</p>
+          <ul className="mt-3 max-h-[26rem] divide-y divide-line overflow-y-auto rounded-lg border border-line bg-card">
             {unassigned.map((m) => (
-              <Drag as="li" key={m.id} kind="person" id={m.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-line bg-card px-3 py-2 text-[15px]">
-                <Avatar url={m.avatar_url} name={m.full_name} size={28} />
-                <span className="min-w-0 flex-1 truncate">{m.full_name}<span className="text-muted"> · {school.get(m.school_id)?.name}</span></span>
+              <Drag as="li" key={m.id} kind="person" id={m.id} className="flex items-center gap-3 px-3 py-2 text-[14px]">
+                <Avatar url={m.avatar_url} name={m.full_name} size={24} />
+                <span className="min-w-0 flex-1 truncate font-medium">{m.full_name}<span className="font-normal text-muted"> · {school.get(m.school_id)?.name}</span></span>
+                {m.placement_pref === "place_me" && <span className="chip hidden border-primary text-primary sm:inline-flex">Wants placement</span>}
                 {!m.paid_at && <span className="chip border-warn text-warn">Unpaid</span>}
                 <AdminAssign studentId={m.id} teams={openTeams} />
               </Drag>
             ))}
           </ul>
-        </section>
+        </details>
       )}
       <div className="mb-5 flex flex-wrap gap-2 text-sm">
         {[["", "All"], ["incomplete", "Needs attention"], ["open", "Not locked"], ["locked", "Locked"]].map(([k, l]) => (

@@ -19,10 +19,11 @@ export default function AdminNav() {
   const tab = (active: boolean) => `group relative flex shrink-0 items-center px-3 py-3 text-[15px] font-medium transition-colors ${active ? "text-ink" : "text-muted hover:text-ink"}`;
   const bar = (active: boolean) => <span aria-hidden className={`absolute inset-x-3 bottom-0 h-[3px] rounded-full bg-accent transition-transform duration-300 ${active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`} />;
   return (
-    <nav className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-2 sm:px-4" aria-label="Organizer">
+    <nav className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-1 px-2 sm:px-4" aria-label="Organizer">
       {MAIN.map(([l, h]) => <Link key={h} href={h} aria-current={on(path, h) ? "page" : undefined} className={tab(on(path, h))}>{l}{bar(on(path, h))}</Link>)}
       {/* keyed by path so the menu closes after you pick a page */}
       <details key={path} className="group/more relative shrink-0">
+        {/* no overflow-x on the nav: it would clip this menu */}
         <summary className={`${tab(inMore)} cursor-pointer list-none [&::-webkit-details-marker]:hidden`}>
           More <svg aria-hidden viewBox="0 0 20 20" className="ml-1 h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 8 5 5 5-5" /></svg>{bar(inMore)}
         </summary>

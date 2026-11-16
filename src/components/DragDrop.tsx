@@ -77,7 +77,7 @@ export function AdminAssign({ studentId, teams }: { studentId: string; teams: { 
   return (
     <span className="flex flex-wrap items-center gap-2">
       <label className="sr-only" htmlFor={`as-${studentId}`}>Team</label>
-      <select id={`as-${studentId}`} value={team} onChange={(e) => setTeam(e.target.value)} className="input !w-auto !py-1 text-sm">
+      <select id={`as-${studentId}`} value={team} onChange={(e) => setTeam(e.target.value)} className="input !w-auto max-w-[9.5rem] !py-1 text-sm">
         <option value="">Team…</option>
         {teams.map((t) => <option key={t.id} value={t.id}>{t.name} ({t.open} open)</option>)}
       </select>
